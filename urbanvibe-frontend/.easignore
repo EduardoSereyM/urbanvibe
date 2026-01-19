@@ -1,0 +1,28 @@
+# .easignore
+# Ignore git and editor files
+.git/
+.vscode/
+.idea/
+
+# Ignore build artifacts
+node_modules/
+.expo/
+dist/
+web-build/
+
+# Ignore native projects (managed workflow)
+android/
+ios/
+
+# Ignore backend (if inside frontend folder by mistake)
+backend/
+urbanvibe-backend/
+
+# Ignore local envs
+.env*.local
+
+# Ignore system files
+.DS_Store
+Thumbs.db
+
+

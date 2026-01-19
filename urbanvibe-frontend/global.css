@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 
+   Este bloque define las VARIABLES de diseño.
+   No hay clases aquí, solo tokens que luego usa tailwind.config.js
+*/
+@layer base {
+  :root {
+    /* --- BASE: LA NOCHE (FONDO GLOBAL) --- */
+    /* Usado por bg-background */
+    /* Este es el color Azul Oscuro - #1B1D37 principal */
+    --la-noche-uv: 236 34% 16%;
+
+    /* --- SUPERFICIES (JERARQUÍA 3D) --- */
+    /* Usado por bg-surface-deep (#252A4A) */
+    /* Este es el color azul oscuro - #252A4A  */
+    --surface-deep-uv: 232 33% 22%;
+
+    /* Usado por bg-surface (#232959) → tarjetas */
+    /* Este es el color azul oscuro - #232959  */
+    --surface-card-uv: 233 43% 24%;
+
+    /* Usado por bg-surface-active (#083D77) → pressed, seleccionado */
+    /* Este es el color azul oscuro - #083D77  */
+    --surface-active-uv: 211 87% 25%;
+
+    /* --- MARCA PRINCIPAL --- */
+    /* Naranja AventuraUV (#FA4E35) → bg-primary / text-primary */
+    /* Este es el color naranja (ROJO UV) - #FA4E35 quinto */
+    --aventura-uv: 9 95% 59%;
+
+    /* Blanco puro para texto sobre naranja (text-primary-foreground) */
+    /* Este es el color blanco - #FA4E35  */
+    --aventura-fg-uv: 0 0% 100%;
+
+    /* Morado MisticaUV (#6313A1) → bg-secondary / text-secondary */
+    /* Este es el color morado - #6313A1  */
+    --mistica-uv: 274 79% 35%;
+
+    /* --- ACENTOS NEÓN --- */
+    /* Cyan (#00E0FF) → accent-cyber */
+    --cyber-uv: 187 100% 50%;
+
+    /* Turquesa (#00F5D4) → accent-turquesa */
+    --turquesa-uv: 172 100% 48%;
+
+    /* Fucsia (#FF00CC) → accent-fucsia */
+    --fucsia-uv: 312 100% 50%;
+
+    /* --- ESTADOS & FEEDBACK --- */
+    /* Verde éxito (#06D6A0) → success */
+    --bio-neon-uv: 164 95% 43%;
+
+    /* Amarillo estrella (#FFC000) → warning */
+    --estrella-uv: 45 100% 50%;
+
+    /* --- TIPOGRAFÍA --- */
+    /* Texto principal (#F2F1F0) → text-foreground */
+    --texto-brillante-uv: 210 5% 95%;
+
+    /* Gris azulado → text-foreground-muted */
+    /* Este es el color gris - #F2F1F0  */
+    --texto-humo-uv: 228 15% 65%;
+
+    /* Oscuro sobre fondos claros → text-foreground-inverted */
+    /* Este es el color  */
+    --texto-invertido-uv: 236 34% 16%;
+
+    /* --- ERRORES & DISABLED --- */
+    --error-uv: 349 100% 58%;
+    /* #FF2A51 */
+    --disabled-uv: 210 18% 30%;
+    /* #3E4C59 */
+
+  }
+}

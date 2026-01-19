@@ -1,0 +1,22 @@
+# --- Seguridad ---
+*.json
+*.env
+*.pem
+*.key
+id_rsa
+secrets.py
+
+# --- Dependencias (Nunca se suben, se instalan en cada OS) ---
+node_modules/
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# --- Sistema y Builds ---
+.DS_Store
+dist/
+build/
+.expo/
+.vscode/
+coverage/

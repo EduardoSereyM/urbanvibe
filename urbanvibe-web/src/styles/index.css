@@ -1,0 +1,59 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;600&display=swap');
+
+@config "../../tailwind.config.js";
+
+@theme {
+  --color-uv-base: #1B1D37;
+  --color-uv-card: #232959;
+  --color-uv-text: #F2F1F0;
+  --color-uv-naranja: #FA4E35;
+  --color-uv-rojo: #FF2A51;
+  --color-uv-cyber: #00E0FF;
+  --color-uv-amarillo: #FFC000;
+  --color-uv-purple: #6313A1;
+  --color-uv-purple-light: #7209B7;
+
+  --font-brand: 'Figtree', sans-serif;
+  --font-sans: 'Inter', sans-serif;
+}
+
+@layer base {
+  body {
+    /* Usamos tu azul base oficial */
+    @apply bg-uv-base text-uv-text antialiased;
+    overflow-x: hidden;
+  }
+
+  #root {
+    @apply w-full min-h-screen flex flex-col;
+  }
+}
+
+@layer components {
+
+  /* ESTILO DE TARJETAS (Igual a tu App móvil) */
+  .app-card {
+    @apply bg-uv-card rounded-2xl p-6 border border-white/5 shadow-xl;
+  }
+
+  /* Botón Principal (Estilo "Escanear QR") */
+  .btn-primary {
+    @apply bg-uv-naranja text-white font-bold py-3 px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg cursor-pointer flex items-center justify-center gap-2;
+    /* Sombra con color naranja para efecto neon */
+    box-shadow: 0 4px 20px -5px rgba(250, 78, 53, 0.4);
+  }
+
+  /* Botón Secundario (Estilo "Mi Billetera") */
+  .btn-secondary {
+    @apply bg-uv-card text-uv-text font-bold py-3 px-6 rounded-xl border border-white/10 hover:bg-white/5 transition-all cursor-pointer flex items-center justify-center gap-2;
+  }
+}
+
+/* Map fix */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: #1B1D37;
+}
