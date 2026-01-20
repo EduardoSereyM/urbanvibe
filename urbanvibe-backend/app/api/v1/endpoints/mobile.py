@@ -368,3 +368,136 @@ async def get_explore_context_bff(
         map_venues=map_items
     )
 
+
+@router.get("/venues-list", response_model=List[VenueListItemBFF])
+async def get_venues_list_bff(
+    db: Annotated[AsyncSession, Depends(deps.get_db)],
+    current_user_id: Annotated[UUID, Depends(deps.get_current_user_id)],
+    skip: int = 0,
+    limit: int = 50,
+):
+    """
+    BFF Endpoint for Venue List Screen.
+    Returns paginated venues with favorite status for the current user.
+    """
+    from app.api.v1.venues.service import get_venues_list_view
+    
+    # 1. Fetch venues from service
+    venues = await get_venues_list_view(db, skip=skip, limit=limit)
+    
+    # 2. Check favorites for current user
+    stmt_favs = select(UserFavoriteVenue.venue_id).where(UserFavoriteVenue.user_id == current_user_id)
+    res_favs = await db.execute(stmt_favs)
+    fav_ids = set(res_favs.scalars().all())
+    
+    # 3. Format response
+    result = []
+    for v in venues:
+        venue_dict = VenueListItemBFF.model_validate(v, from_attributes=True).model_dump()
+        venue_dict["is_favorite"] = v.id in fav_ids
+        
+        # Ensure location format match (lat/lng)
+        venue_dict["location"] = {"lat": v.latitude, "lng": v.longitude} if v.latitude and v.longitude else None
+        
+        result.append(VenueListItemBFF(**venue_dict))
+        
+    return result
+
+
+@router.get("/favorites", response_model=List[VenueFavoriteItem])
+async def get_user_hydrated_favorites(
+    db: Annotated[AsyncSession, Depends(deps.get_db)],
+    current_user_id: Annotated[UUID, Depends(deps.get_current_user_id)],
+):
+    """
+    Returns the user's favorite venues with basic details (Hydrated).
+    """
+    # Join UserFavoriteVenue with Venue
+    stmt = (
+        select(Venue)
+        .join(UserFavoriteVenue, Venue.id == UserFavoriteVenue.venue_id)
+        .where(UserFavoriteVenue.user_id == current_user_id)
+        .where(Venue.operational_status == "open")
+    )
+    
+    if hasattr(Venue, "deleted_at"):
+        stmt = stmt.where(Venue.deleted_at.is_(None))
+        
+    res = await db.execute(stmt)
+    venues = res.scalars().all()
+    
+    result = []
+    for v in venues:
+        result.append(VenueFavoriteItem(
+            id=v.id,
+            name=v.name,
+            category_name=v.category.name if v.category else None,
+            rating_average=v.rating_average or 0.0,
+            price_tier=v.price_tier or 1,
+            logo_url=v.logo_url,
+            cover_image_urls=v.cover_image_urls or []
+        ))
+        
+    return result
+
+
+@router.get("/venue-details/{venue_id}", response_model=VenueDetailBFFResponse)
+async def get_venue_detail_bff(
+    venue_id: UUID,
+    db: Annotated[AsyncSession, Depends(deps.get_db)],
+    current_user_id: Annotated[UUID, Depends(deps.get_current_user_id)],
+):
+    """
+    Full Venue detail for Mobile app.
+    Includes Venue info, favorite status, and active promotions.
+    """
+    from app.api.v1.venues.service import get_venue_by_id
+    
+    # 1. Fetch Venue
+    venue = await get_venue_by_id(db, venue_id)
+    if not venue:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Venue not found")
+        
+    # 2. Check Favorite
+    stmt_fav = select(UserFavoriteVenue).where(
+        UserFavoriteVenue.user_id == current_user_id,
+        UserFavoriteVenue.venue_id == venue_id
+    )
+    res_fav = await db.execute(stmt_fav)
+    is_favorite = res_fav.scalar_one_or_none() is not None
+    
+    # 3. Fetch Active Promotions
+    # Filter by is_active and optionally current date logic
+    stmt_promos = select(Promotion).where(
+        Promotion.venue_id == venue_id,
+        Promotion.is_active == True
+    )
+    res_promos = await db.execute(stmt_promos)
+    promos = res_promos.scalars().all()
+    
+    formatted_promos = []
+    for p in promos:
+        formatted_promos.append(UserPromotionBFFItem(
+            id=p.id,
+            title=p.title,
+            image_url=p.image_url,
+            promo_type=p.promo_type,
+            reward_tier=p.reward_tier,
+            points_cost=p.points_cost,
+            is_active=p.is_active,
+            can_redeem=True, # Logic for redemption could be more complex
+            redeem_alert=None
+        ))
+        
+    # 4. Format Venue Object (ensuring location)
+    venue_resp = VenueResponse.model_validate(venue, from_attributes=True)
+    venue_dict = venue_resp.model_dump()
+    venue_dict["location"] = {"lat": venue.latitude, "lng": venue.longitude} if venue.latitude and venue.longitude else None
+
+    return VenueDetailBFFResponse(
+        venue=venue_dict,
+        is_favorite=is_favorite,
+        active_promotions=formatted_promos
+    )
+
