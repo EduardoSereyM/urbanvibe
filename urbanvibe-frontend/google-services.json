@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "174804780222",
+    "project_id": "urbanvibe-1975",
+    "storage_bucket": "urbanvibe-1975.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:174804780222:android:50e6b84183dd0ec0898aef",
+        "android_client_info": {
+          "package_name": "com.urbanvibe.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCt9Hd3fRbj9UMgXA5YrPy8BEIDkEHsKkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

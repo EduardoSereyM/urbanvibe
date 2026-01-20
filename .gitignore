@@ -1,5 +1,5 @@
 # --- Seguridad ---
-*.json
+# *.json
 *.env
 *.pem
 *.key

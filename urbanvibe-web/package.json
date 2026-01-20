@@ -1,0 +1,30 @@
+{
+    "name": "urbanvibe-web",
+    "private": true,
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "dependencies": {
+        "@tailwindcss/postcss": "^4.1.18",
+        "axios": "^1.6.0",
+        "framer-motion": "^10.16.4",
+        "leaflet": "^1.9.4",
+        "lucide-react": "^0.292.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-leaflet": "^4.2.1"
+    },
+    "devDependencies": {
+        "@types/react": "^18.2.37",
+        "@types/react-dom": "^18.2.15",
+        "@vitejs/plugin-react-swc": "^3.5.0",
+        "autoprefixer": "^10.4.23",
+        "postcss": "^8.5.6",
+        "tailwindcss": "^4.1.18",
+        "vite": "^5.0.0"
+    }
+}

@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "UrbanVibe",
+    "slug": "urbanvibe",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/iconoapp512x512.png",
+    "scheme": "urbanvibe",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.urbanvibe.app"
+    },
+    "android": {
+      "package": "com.urbanvibe.app",
+      "usesCleartextTraffic": true,
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCpCplZIDtQYYFl3OObheIjCq1ntz36YOw"
+        }
+      },
+      "adaptiveIcon": {
+        "backgroundColor": "#1B1D37",
+        "foregroundImage": "./assets/images/iconoapp512x512.png"
+      },
+      "googleServicesFile": "./google-services.json",
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "output": "single",
+      "bundler": "metro",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/urbanvibe-logo.png",
+          "imageWidth": 150,
+          "resizeMode": "contain",
+          "backgroundColor": "#1B1D37",
+          "dark": {
+            "backgroundColor": "#1B1D37"
+          }
+        }
+      ],
+      "expo-video"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": false
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "50927ef2-1e4f-4580-835f-cb74ca93bcfc"
+      }
+    }
+  }
+}
