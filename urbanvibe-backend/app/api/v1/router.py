@@ -16,7 +16,10 @@ from app.api.v1.admin.router import router as admin_router
 from app.api.v1.endpoints import mobile # BFF
 from app.api.v1.endpoints import mobile # BFF
 from app.api.v1.endpoints import notifications # Notifications
+from app.api.v1.endpoints import friends # Friends Social
 from app.api.v1.admin.gamification import router as gamification_admin_router
+from app.api.v1.endpoints.gamification import router as gamification_router
+from app.api.v1.endpoints import groups # Groups Social
 
 api_router = APIRouter()
 
@@ -37,3 +40,6 @@ from app.api.v1.reviews.router import router as reviews_router
 api_router.include_router(reviews_router, prefix="/reviews", tags=["reviews"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(gamification_admin_router, prefix="/admin/gamification", tags=["Admin Gamification"])
+api_router.include_router(friends.router, prefix="/friends", tags=["Friends Social"])
+api_router.include_router(gamification_router, prefix="/gamification", tags=["Gamification User"])
+api_router.include_router(groups.router, prefix="/groups", tags=["Groups Social"])

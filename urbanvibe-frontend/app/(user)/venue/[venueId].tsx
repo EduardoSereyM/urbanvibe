@@ -26,6 +26,7 @@ import { Alert, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { UserPromotionBFFItem } from '../../../src/types';
 import QRScannerModal from '../../../src/components/QRScannerModal'; // Import Scanner
+import VenueInvitationModal from '../../../src/components/modals/VenueInvitationModal';
 
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = 200;
@@ -60,6 +61,7 @@ export default function VenueDetailScreen() {
     const [submitting, setSubmitting] = useState(false);
     const [scannerVisible, setScannerVisible] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [showInvitationModal, setShowInvitationModal] = useState(false);
 
     const handleCheckinSuccess = () => {
         setSuccessMessage("¡Check-in exitoso! Has ganado puntos.");
@@ -209,19 +211,10 @@ export default function VenueDetailScreen() {
                 </TouchableOpacity>
                 <View className="flex-row gap-3">
                     <TouchableOpacity
-                        onPress={() => {
-                            Alert.alert(
-                                'Invitar Amigos',
-                                `¿A quién quieres invitar a ${venue.name}?`,
-                                [
-                                    { text: 'Cancelar', style: 'cancel' },
-                                    { text: 'Enviar Invitación', onPress: () => Alert.alert('¡Enviado!', 'Tus amigos han recibido la invitación.') }
-                                ]
-                            );
-                        }}
+                        onPress={() => setShowInvitationModal(true)}
                         className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
                     >
-                        <Ionicons name="share-social-outline" size={24} color="white" />
+                        <Ionicons name="people-outline" size={24} color="white" />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => setShowReviewModal(true)}
@@ -307,7 +300,8 @@ export default function VenueDetailScreen() {
                                 </Text>
                             )}
                             {venue.overview && (
-                                <View>
+                                <View className="mt-4">
+                                    <Text className="text-foreground-muted font-bold text-[10px] uppercase tracking-widest mb-1">Descripción</Text>
                                     <Text className="text-foreground font-body leading-relaxed text-base opacity-90">
                                         {venue.overview}
                                     </Text>
@@ -331,9 +325,24 @@ export default function VenueDetailScreen() {
                         </View>
                     </View>
 
-                    <Text className="text-foreground-muted font-body text-sm mb-6">
-                        {venue.category_name || venue.category_id || 'Venue'} • {'$'.repeat(venue.price_tier || 1)}
-                    </Text>
+                    <View className="flex-row gap-8 mb-6 mt-2">
+                        <View>
+                            <Text className="text-foreground-muted font-bold text-[10px] uppercase tracking-widest mb-1">Categoría</Text>
+                            <View className="bg-surface-active px-3 py-1.5 rounded-xl border border-white/5 self-start">
+                                <Text className="text-foreground font-body text-sm">
+                                    {venue.category_name || venue.category_id || 'General'}
+                                </Text>
+                            </View>
+                        </View>
+                        <View>
+                            <Text className="text-foreground-muted font-bold text-[10px] uppercase tracking-widest mb-1">Nivel de Precio</Text>
+                            <View className="bg-surface-active px-3 py-1.5 rounded-xl border border-white/5 self-start">
+                                <Text className="text-primary font-bold text-sm">
+                                    {'$'.repeat(venue.price_tier || 1)}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
 
                     {/* ACTION BAR */}
 
@@ -661,6 +670,13 @@ export default function VenueDetailScreen() {
                     <Text className="text-white font-bold ml-3 flex-1">{successMessage}</Text>
                 </View>
             )}
+
+            <VenueInvitationModal
+                isVisible={showInvitationModal}
+                onClose={() => setShowInvitationModal(false)}
+                venueId={venueId as string}
+                venueName={venue.name}
+            />
         </View>
     );
 }

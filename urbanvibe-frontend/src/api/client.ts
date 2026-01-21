@@ -266,3 +266,68 @@ export const confirmCheckin = async (venueId: string, checkinId: number): Promis
   });
   return data;
 };
+
+// ============================================================================
+// Gamification & Wallet API
+// ============================================================================
+
+export async function fetchPointHistory(skip = 0, limit = 50) {
+  const { data } = await client.get('/gamification/my-history', {
+    params: { skip, limit }
+  });
+  return data;
+}
+
+export async function fetchPointStats() {
+  const { data } = await client.get('/gamification/my-stats');
+  return data;
+}
+
+// ============================================================================
+// Groups API (V14)
+// ============================================================================
+
+export async function fetchMyGroups() {
+  const { data } = await client.get('/groups/my-groups');
+  return data;
+}
+
+export async function createGroup(payload: { name: string; description?: string; is_private?: boolean }) {
+  const { data } = await client.post('/groups/', payload);
+  return data;
+}
+
+export async function fetchGroupDetails(groupId: string) {
+  const { data } = await client.get(`/groups/${groupId}`);
+  return data;
+}
+
+export async function fetchGroupMembers(groupId: string) {
+  const { data } = await client.get(`/groups/${groupId}/members`);
+  return data;
+}
+
+export async function inviteToGroup(groupId: string, inviteeId: string) {
+  const { data } = await client.post(`/groups/${groupId}/invite`, { invitee_id: inviteeId });
+  return data;
+}
+
+export async function fetchReceivedGroupInvitations() {
+  const { data } = await client.get('/groups/invitations/received');
+  return data;
+}
+
+export async function handleGroupInvitation(invitationId: string, action: 'accept' | 'reject') {
+  const { data } = await client.patch(`/groups/invitations/${invitationId}/action`, { action });
+  return data;
+}
+
+export async function removeGroupMember(groupId: string, userId: string) {
+  const { data } = await client.delete(`/groups/${groupId}/members/${userId}`);
+  return data;
+}
+
+export async function fetchUserGroups(userId: string) {
+  const { data } = await client.get(`/groups/profile/${userId}`);
+  return data;
+}

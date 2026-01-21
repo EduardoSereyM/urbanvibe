@@ -9,9 +9,10 @@ import { registerDeviceToken } from '../api/client';
 // Configuración global de notificaciones
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldPlaySound: true,
-        shouldSetBadge: false,
+        shouldSetBadge: true,
     }),
 });
 
@@ -33,8 +34,8 @@ export function useNotification() {
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const [expoPushToken, setExpoPushToken] = useState<string | undefined>(undefined);
     const [notification, setNotification] = useState<Notifications.Notification | undefined>(undefined);
-    const notificationListener = useRef<Notifications.EventSubscription>();
-    const responseListener = useRef<Notifications.EventSubscription>();
+    const notificationListener = useRef<Notifications.EventSubscription | undefined>(undefined);
+    const responseListener = useRef<Notifications.EventSubscription | undefined>(undefined);
 
     const registerForPushNotificationsAsync = async () => {
         let token;

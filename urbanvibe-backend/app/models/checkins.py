@@ -34,3 +34,4 @@ class Checkin(Base):
     session_duration_minutes = Column(Integer, nullable=True)
     visit_purpose = Column(JSONB, nullable=True, default=[])
     spend_bucket = Column(String, nullable=True)
+    group_id = Column(UUID(as_uuid=True), ForeignKey("public.groups.id"), nullable=True)

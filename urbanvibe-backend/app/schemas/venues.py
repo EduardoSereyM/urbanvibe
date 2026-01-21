@@ -98,7 +98,7 @@ class VenueResponse(VenueBase):
                     "slogan": data.slogan,
                     "overview": data.overview,
                     "category_id": data.category_id,
-                    "category_name": getattr(data, 'category_name', None),
+                    "category_name": data.category.name if data.category else None,
                     
                     # Branding
                     "logo_url": data.logo_url,

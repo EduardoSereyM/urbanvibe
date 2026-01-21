@@ -34,9 +34,19 @@ export default function NotificationsScreen() {
         },
     });
 
-    const notifications = Array.isArray(data) ? data : [];
+    // 2. Fetch Unread Count
+    const { data: unreadData, refetch: refetchUnread } = useQuery({
+        queryKey: ['unread-count'],
+        queryFn: async () => {
+            const response = await client.get('/notifications/unread-count');
+            return response.data; // { count: number }
+        },
+    });
 
-    // 2. Mark as Read Mutation
+    const notifications = Array.isArray(data) ? data : [];
+    const unreadCount = unreadData?.count || 0;
+
+    // 3. Mark as Read Mutation
     const markReadMutation = useMutation({
         mutationFn: async (id: string) => {
             await client.patch(`/notifications/${id}/read`);
@@ -53,11 +63,17 @@ export default function NotificationsScreen() {
         }
 
         // Navegación inteligente basada en 'data'
-        if (item.data?.screen) {
-            // Ejemplo: venue-detail, admin-venues
-            if (item.data.screen === 'venue-detail' && item.data.venue_name) {
-                // Esto es un poco hacky si no tenemos el ID, idealmente el backend manda ID.
-                // Asumiremos que por ahora solo marcamos leída.
+        if (item.data) {
+            const { type, screen, venue_id, sender_id } = item.data;
+
+            if (type === 'VENUE_INVITATION' || type === 'VENUE_INVITATION_ACCEPTED') {
+                router.push('/(user)/community/invitations');
+            } else if (type === 'FRIEND_REQUEST' || type === 'FRIEND_ACCEPTED') {
+                router.push('/(user)/community');
+            } else if (screen === 'venue-detail' && venue_id) {
+                router.push(`/(user)/venue/${venue_id}`);
+            } else if (screen === 'community') {
+                router.push('/(user)/community');
             }
         }
     };
@@ -109,6 +125,11 @@ export default function NotificationsScreen() {
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
                 <Text className="text-white text-xl font-brand flex-1">Notificaciones</Text>
+                {unreadCount > 0 && (
+                    <View className="bg-primary px-3 py-1 rounded-full">
+                        <Text className="text-white text-xs font-bold">{unreadCount} nuevas</Text>
+                    </View>
+                )}
             </View>
 
             {isLoading ? (

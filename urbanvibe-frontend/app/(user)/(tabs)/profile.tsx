@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useProfileContext } from '../../../src/hooks/useProfileContext';
 import { supabase } from '../../../src/lib/supabase';
 import QRScannerModal from '../../../src/components/QRScannerModal';
+import QRCode from 'react-native-qrcode-svg';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import * as ImagePicker from 'expo-image-picker';
@@ -651,6 +652,29 @@ export default function ProfileScreen() {
               </Text>
             </View>
           )}
+        </View>
+
+        {/* --- MI CÓDIGO QR SOCIAL (V13.4) --- */}
+        <View className="mt-8 bg-white p-6 rounded-[32px] items-center border border-surface-active shadow-sm overflow-hidden">
+          <View className="absolute top-0 right-0 p-4 opacity-5">
+            <Ionicons name="qr-code" size={120} color="black" />
+          </View>
+
+          <Text className="text-black font-brand text-xl mb-1">Mi Código UrbanVibe</Text>
+          <Text className="text-black/50 text-xs mb-6 text-center">Tus amigos pueden escanear esto para agregarte</Text>
+
+          <View className="p-4 bg-white rounded-3xl shadow-lg border border-black/5">
+            <QRCode
+              value={profile.referral_code || `UV-${profile.id.substring(0, 6)}`}
+              size={180}
+              color="#000"
+              backgroundColor="#FFF"
+            />
+          </View>
+
+          <View className="mt-6 bg-black/5 px-6 py-3 rounded-2xl border border-black/5">
+            <Text className="text-black font-brand text-2xl tracking-[4px]">{profile.referral_code}</Text>
+          </View>
         </View>
 
         {/* --- COMUNIDAD & SOCIAL (V13) --- */}

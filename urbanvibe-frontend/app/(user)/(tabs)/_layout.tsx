@@ -1,9 +1,11 @@
 // Layout de tabs del usuario (Explorar, Lista, Favoritos, Perfil) con barra inferior estilizada según diseño UV.
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import { Platform, View } from 'react-native';
+import { Platform, View, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons'; // Iconos de MaterialCommunityIcons
-import FontAwesome5 from '@expo/vector-icons/FontAwesome5'; // Iconos de FontAwesome5
+import FontWeight5 from '@expo/vector-icons/FontAwesome5'; // Iconos de FontAwesome5
+import { useQuery } from '@tanstack/react-query';
+import { client } from '../../../src/api/client';
 
 export default function UserTabsLayout() {
     return (
@@ -54,12 +56,27 @@ export default function UserTabsLayout() {
                 name="notifications"
                 options={{
                     title: 'Avisos',
-                    tabBarIcon: ({ color, focused }) => (
-                        <View className="relative">
-                            <Ionicons name={focused ? "notifications" : "notifications-outline"} size={28} color={color} />
-                            {/* TODO: Add badge count logic here if possible, or just rely on the screen */}
-                        </View>
-                    ),
+                    tabBarIcon: ({ color, focused }) => {
+                        const { data: unreadData } = useQuery({
+                            queryKey: ['unread-count'],
+                            queryFn: async () => {
+                                const response = await client.get('/notifications/unread-count');
+                                return response.data;
+                            },
+                        });
+                        const count = unreadData?.count || 0;
+
+                        return (
+                            <View className="relative">
+                                <Ionicons name={focused ? "notifications" : "notifications-outline"} size={28} color={color} />
+                                {count > 0 && (
+                                    <View className="absolute -top-1 -right-1 bg-primary w-4 h-4 rounded-full items-center justify-center border border-surface">
+                                        <Text className="text-white text-[8px] font-bold">{count > 9 ? '9+' : count}</Text>
+                                    </View>
+                                )}
+                            </View>
+                        );
+                    },
                 }}
             />
             <Tabs.Screen
