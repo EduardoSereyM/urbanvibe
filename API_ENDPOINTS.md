@@ -1,22 +1,9 @@
 # Documentación API Backend - UrbanVibe
 
-**Proyecto:** UrbanVibe - Plataforma de descubrimiento urbano  
-**Backend:** FastAPI + PostgreSQL (Supabase)  
-**Versión:** V14 (Grupos y Gamificación)  
-**Base URL (Producción):** `https://backenduv.onrender.com`
+**Proyecto:** UrbanVibe - Plataforma de descubrimiento urbano
+**Backend:** FastAPI + PostgreSQL (Supabase)
 
 Esta documentación detalla todos los endpoints disponibles en la API REST.
-
-## Convenciones
-
-- 🔹 **GET** - Consulta de recursos
-- 🟢 **POST** - Creación de recursos
-- 🟡 **PUT** - Actualización completa
-- 🟠 **PATCH** - Actualización parcial
-- 🔴 **DELETE** - Eliminación de recursos
-
-**Autenticación:** La mayoría de endpoints requieren un token JWT de Supabase en el header:  
-`Authorization: Bearer <token>`
 
 ---
 
@@ -40,19 +27,19 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/checkins.py`
 
-### 🟢 `POST /`
+### [POST] `POST /`
 
 **Función:** `create_checkin`
 
 ---
 
-### 🔹 `GET /me`
+### [GET] `GET /me`
 
 **Función:** `get_my_checkins`
 
 ---
 
-### 🟢 `POST /scan`
+### [POST] `POST /scan`
 
 **Función:** `scan_qr`
 
@@ -62,7 +49,7 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/contact.py`
 
-### 🟢 `POST /`
+### [POST] `POST /`
 
 **Función:** `send_contact_email`
 
@@ -72,67 +59,67 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/friends.py`
 
-### 🟢 `POST /invite-to-venue`
+### [POST] `POST /invite-to-venue`
 
 **Función:** `invite_friend_to_venue`
 
 ---
 
-### 🔹 `GET /list`
+### [GET] `GET /list`
 
 **Función:** `get_friends_list`
 
 ---
 
-### 🔹 `GET /profile/{user_id}`
+### [GET] `GET /profile/{user_id}`
 
 **Función:** `get_public_profile`
 
 ---
 
-### 🟢 `POST /request/{friend_id}`
+### [POST] `POST /request/{friend_id}`
 
 **Función:** `send_friend_request`
 
 ---
 
-### 🟠 `PATCH /requests/{friendship_id}/action`
+### [PATCH] `PATCH /requests/{friendship_id}/action`
 
 **Función:** `handle_friend_request`
 
 ---
 
-### 🔹 `GET /search`
+### [GET] `GET /search`
 
 **Función:** `search_users`
 
 ---
 
-### 🔹 `GET /venue-invitations`
+### [GET] `GET /venue-invitations`
 
 **Función:** `get_venue_invitations`
 
 ---
 
-### 🔹 `GET /venue-invitations/received`
+### [GET] `GET /venue-invitations/received`
 
 **Función:** `get_received_venue_invitations`
 
 ---
 
-### 🔹 `GET /venue-invitations/sent`
+### [GET] `GET /venue-invitations/sent`
 
 **Función:** `get_sent_venue_invitations`
 
 ---
 
-### 🟠 `PATCH /venue-invitations/{invitation_id}/action`
+### [PATCH] `PATCH /venue-invitations/{invitation_id}/action`
 
 **Función:** `handle_venue_invitation`
 
 ---
 
-### 🔴 `DELETE /{friendship_id}`
+### [DELETE] `DELETE /{friendship_id}`
 
 **Función:** `remove_friend`
 
@@ -142,13 +129,13 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/gamification.py`
 
-### 🔹 `GET /my-history`
+### [GET] `GET /my-history`
 
 **Función:** `get_my_points_history`
 
 ---
 
-### 🔹 `GET /my-stats`
+### [GET] `GET /my-stats`
 
 **Función:** `get_my_point_stats`
 
@@ -158,55 +145,55 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/groups.py`
 
-### 🟢 `POST /`
+### [POST] `POST /`
 
 **Función:** `create_group`
 
 ---
 
-### 🔹 `GET /invitations/received`
+### [GET] `GET /invitations/received`
 
 **Función:** `get_received_group_invitations`
 
 ---
 
-### 🟠 `PATCH /invitations/{invitation_id}/action`
+### [PATCH] `PATCH /invitations/{invitation_id}/action`
 
 **Función:** `handle_group_invitation`
 
 ---
 
-### 🔹 `GET /my-groups`
+### [GET] `GET /my-groups`
 
 **Función:** `get_my_groups`
 
 ---
 
-### 🔹 `GET /profile/{user_id}`
+### [GET] `GET /profile/{user_id}`
 
 **Función:** `get_user_public_groups`
 
 ---
 
-### 🔹 `GET /{group_id}`
+### [GET] `GET /{group_id}`
 
 **Función:** `get_group_detail`
 
 ---
 
-### 🟢 `POST /{group_id}/invite`
+### [POST] `POST /{group_id}/invite`
 
 **Función:** `invite_to_group`
 
 ---
 
-### 🔹 `GET /{group_id}/members`
+### [GET] `GET /{group_id}/members`
 
 **Función:** `get_group_members`
 
 ---
 
-### 🔴 `DELETE /{group_id}/members/{user_id}`
+### [DELETE] `DELETE /{group_id}/members/{user_id}`
 
 **Función:** `remove_group_member`
 
@@ -216,7 +203,7 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/health.py`
 
-### 🔹 `GET /health`
+### [GET] `GET /health`
 
 **Función:** `health_check`
 
@@ -226,31 +213,31 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/mobile.py`
 
-### 🔹 `GET /explore-context`
+### [GET] `GET /explore-context`
 
 **Función:** `get_explore_context_bff`
 
 ---
 
-### 🔹 `GET /favorites`
+### [GET] `GET /favorites`
 
 **Función:** `get_user_hydrated_favorites`
 
 ---
 
-### 🔹 `GET /profile-context`
+### [GET] `GET /profile-context`
 
 **Función:** `get_profile_context_bff`
 
 ---
 
-### 🔹 `GET /venue-details/{venue_id}`
+### [GET] `GET /venue-details/{venue_id}`
 
 **Función:** `get_venue_detail_bff`
 
 ---
 
-### 🔹 `GET /venues-list`
+### [GET] `GET /venues-list`
 
 **Función:** `get_venues_list_bff`
 
@@ -260,31 +247,31 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/notifications.py`
 
-### 🔹 `GET /`
+### [GET] `GET /`
 
 **Función:** `get_my_notifications`
 
 ---
 
-### 🟢 `POST /device`
+### [POST] `POST /device`
 
 **Función:** `register_device`
 
 ---
 
-### 🔹 `GET /unread-count`
+### [GET] `GET /unread-count`
 
 **Función:** `get_unread_count`
 
 ---
 
-### 🟢 `POST /user-created`
+### [POST] `POST /user-created`
 
 **Función:** `notify_user_created_event`
 
 ---
 
-### 🟠 `PATCH /{notification_id}/read`
+### [PATCH] `PATCH /{notification_id}/read`
 
 **Función:** `mark_notification_read`
 
@@ -294,43 +281,43 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/profiles.py`
 
-### 🔹 `GET /me`
+### [GET] `GET /me`
 
 **Función:** `read_me`
 
 ---
 
-### 🟠 `PATCH /me`
+### [PATCH] `PATCH /me`
 
 **Función:** `update_me`
 
 ---
 
-### 🔹 `GET /me/ambassador`
+### [GET] `GET /me/ambassador`
 
 **Función:** `get_ambassador_status`
 
 ---
 
-### 🔹 `GET /me/favorites`
+### [GET] `GET /me/favorites`
 
 **Función:** `get_my_favorites`
 
 ---
 
-### 🔴 `DELETE /me/favorites/{venue_id}`
+### [DELETE] `DELETE /me/favorites/{venue_id}`
 
 **Función:** `remove_favorite`
 
 ---
 
-### 🟢 `POST /me/favorites/{venue_id}`
+### [POST] `POST /me/favorites/{venue_id}`
 
 **Función:** `add_favorite`
 
 ---
 
-### 🟢 `POST /me/referral/claim`
+### [POST] `POST /me/referral/claim`
 
 **Función:** `claim_referral`
 
@@ -340,19 +327,19 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/promotions.py`
 
-### 🔹 `GET /me/wallet`
+### [GET] `GET /me/wallet`
 
 **Función:** `get_my_wallet`
 
 ---
 
-### 🟢 `POST /promotions/{promotion_id}/claim`
+### [POST] `POST /promotions/{promotion_id}/claim`
 
 **Función:** `claim_promotion`
 
 ---
 
-### 🔹 `GET /venues/{venue_id}/promotions`
+### [GET] `GET /venues/{venue_id}/promotions`
 
 **Función:** `get_venue_promotions_user`
 
@@ -362,19 +349,19 @@ Esta documentación detalla todos los endpoints disponibles en la API REST.
 
 **Archivo:** `app/api/v1/endpoints/venue_team.py`
 
-### 🔹 `GET /{venue_id}/team`
+### [GET] `GET /{venue_id}/team`
 
 **Función:** `list_team_members`
 
 ---
 
-### 🟢 `POST /{venue_id}/team`
+### [POST] `POST /{venue_id}/team`
 
 **Función:** `add_team_member`
 
 ---
 
-### 🟠 `PATCH /{venue_id}/team/{member_id}`
+### [PATCH] `PATCH /{venue_id}/team/{member_id}`
 
 **Función:** `update_team_member`
 

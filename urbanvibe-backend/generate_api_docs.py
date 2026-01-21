@@ -44,7 +44,7 @@ def extract_endpoints_from_router(router_path: Path) -> List[Dict[str, Any]]:
             })
     
     except Exception as e:
-        print(f"⚠️ Error procesando {router_path}: {e}")
+        print(f"Advertencia - Error procesando {router_path}: {e}")
     
     return endpoints
 
@@ -66,7 +66,7 @@ def generate_documentation():
         if router_file.name == '__init__.py':
             continue
         
-        print(f"📄 Procesando {router_file.name}...")
+        print(f"Procesando {router_file.name}...")
         endpoints = extract_endpoints_from_router(router_file)
         all_endpoints.extend(endpoints)
     
@@ -118,15 +118,8 @@ def generate_documentation():
             path = endpoint['path']
             function = endpoint['function']
             docstring = endpoint['docstring']
-            
-            # Código de colores según método
-            method_badge = {
-                'GET': '🔹',
-                'POST': '🟢',
-                'PUT': '🟡',
-                'PATCH': '🟠',
-                'DELETE': '🔴'
-            }.get(method, '⚪')
+            # Badge de método
+            method_badge = f"[{method}]"
             
             md_lines.extend([
                 f"### {method_badge} `{method} {path}`",
@@ -142,7 +135,7 @@ def generate_documentation():
             
             # Detectar si requiere autenticación
             if 'current_user' in function or 'Depends(get_current_user)' in str(endpoint):
-                md_lines.append("**Autenticación:** ✅ Requerida")
+                md_lines.append("**Autenticación:** Requerida")
                 md_lines.append("")
             
             md_lines.extend(["---", ""])
@@ -189,7 +182,7 @@ def generate_documentation():
 
 
 if __name__ == '__main__':
-    print("🚀 Generando documentación de API...")
+    print("Generando documentacion de API...")
     
     try:
         docs, total_endpoints = generate_documentation()
@@ -198,12 +191,12 @@ if __name__ == '__main__':
         output_path = Path(__file__).parent.parent / 'API_ENDPOINTS.md'
         output_path.write_text(docs, encoding='utf-8')
         
-        print(f"✅ Documentación generada exitosamente")
-        print(f"📍 Ubicación: {output_path}")
-        print(f"📊 Total de endpoints: {total_endpoints}")
-        print(f"📄 Total de líneas: {len(docs.splitlines())}")
+        print(f"OK Documentacion generada exitosamente")
+        print(f"Ubicacion: {output_path}")
+        print(f"Total de endpoints: {total_endpoints}")
+        print(f"Total de lineas: {len(docs.splitlines())}")
         
     except Exception as e:
-        print(f"❌ Error al generar documentación: {e}")
+        print(f"ERROR al generar documentacion: {e}")
         import traceback
         traceback.print_exc()
