@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import * as ImagePicker from 'expo-image-picker';
 import { updateProfile } from '../../../src/api/client';
+import { LocationSelector } from '../../../src/components/LocationSelector';
 
 import { decode } from 'base64-arraybuffer';
 
@@ -75,6 +76,11 @@ export default function ProfileScreen() {
   const [editFavoriteCuisines, setEditFavoriteCuisines] = useState<string[]>([]);
   const [editPricePreference, setEditPricePreference] = useState<number>(0);
   const [showCuisinesHelper, setShowCuisinesHelper] = useState(false); // Dropdown State
+
+  // Location State
+  const [editCountry, setEditCountry] = useState<string>('CL');
+  const [editRegion, setEditRegion] = useState<number | undefined>(undefined);
+  const [editCity, setEditCity] = useState<number | undefined>(undefined);
 
   // RUT Validation Helper
   const validarRut = (rutCompleto: string) => {
@@ -260,6 +266,12 @@ export default function ProfileScreen() {
     setEditIsInfluencer(profile?.is_influencer || false);
     setEditFavoriteCuisines(profile?.favorite_cuisines || []);
     setEditPricePreference(profile?.price_preference || 1);
+
+    // Location Init
+    setEditCountry(profile?.country_code || 'CL');
+    setEditRegion(profile?.region_id || undefined);
+    setEditCity(profile?.city_id || undefined);
+
     setIsEditing(true);
   };
 
@@ -286,6 +298,11 @@ export default function ProfileScreen() {
 
   const handleSaveProfile = async () => {
     if (!profile?.id) return;
+
+    if (!editCity) {
+      Alert.alert('Falta información', 'Por favor selecciona tu Comuna para continuar.');
+      return;
+    }
 
     // Convertir DD/MM/AAAA a YYYY-MM-DD para el backend
     let formattedBirthDate = editBirthDate;
@@ -317,6 +334,12 @@ export default function ProfileScreen() {
         is_influencer: editIsInfluencer,
         favorite_cuisines: editFavoriteCuisines,
         price_preference: editPricePreference,
+
+        // Location
+        country_code: editCountry,
+        region_id: editRegion,
+        city_id: editCity,
+        current_city: "", // Dejar que el backend o selector resuelva display si es necesario, o enviarlo vacío para que use IDs
       });
       await refetch();
       setIsEditing(false);
@@ -421,6 +444,25 @@ export default function ProfileScreen() {
                   placeholderTextColor="#6B7280"
                   multiline
                   textAlignVertical='top'
+                />
+                />
+              </View>
+
+              <View className="my-4">
+                <LocationSelector
+                  countryCode={editCountry}
+                  regionId={editRegion}
+                  cityId={editCity}
+                  onCountryChange={(c) => {
+                    setEditCountry(c);
+                    setEditRegion(undefined);
+                    setEditCity(undefined);
+                  }}
+                  onRegionChange={(r) => {
+                    setEditRegion(r);
+                    setEditCity(undefined);
+                  }}
+                  onCityChange={(c) => setEditCity(c)}
                 />
               </View>
 

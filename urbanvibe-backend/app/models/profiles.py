@@ -1,10 +1,12 @@
 from sqlalchemy import Column, String, Integer, Boolean, DateTime, Date, SmallInteger, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY
+from sqlalchemy import BigInteger
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 from geoalchemy2 import Geography
 from app.models.levels import Level
+from app.models.locations import Country, Region, City
 
 class Profile(Base):
     __tablename__ = "profiles"
@@ -62,3 +64,12 @@ class Profile(Base):
 
     # Relationships
     current_level = relationship("Level", foreign_keys=[current_level_id], lazy="selectin")
+    
+    # Location Hierarchy
+    country_code = Column(String, ForeignKey("public.countries.code"), nullable=True)
+    region_id = Column(BigInteger, ForeignKey("public.regions.id"), nullable=True)
+    city_id = Column(BigInteger, ForeignKey("public.cities.id"), nullable=True)
+    
+    country = relationship("Country", foreign_keys=[country_code])
+    region = relationship("Region", foreign_keys=[region_id])
+    city = relationship("City", foreign_keys=[city_id])

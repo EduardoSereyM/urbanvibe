@@ -3,6 +3,9 @@ from uuid import UUID
 from typing import List
 from datetime import date
 
+from typing import List, Optional
+from app.schemas.locations import CountryResponse, RegionResponse, CityResponse
+
 class ProfileBase(BaseModel):
     reputation_score: int = 0
     points_current: int = 0
@@ -49,6 +52,15 @@ class ProfileResponse(ProfileBase):
     
     current_level_name: str | None = None
     
+    # Location Hierarchy Objects (nested if available) or just IDs
+    country_code: str | None = None
+    region_id: int | None = None
+    city_id: int | None = None
+    
+    country: Optional[CountryResponse] = None
+    region: Optional[RegionResponse] = None
+    city: Optional[CityResponse] = None
+    
     @property
     def current_level_name_computed(self):
         # Allow Pydantic to read from ORM relationship if available
@@ -85,5 +97,10 @@ class ProfileUpdate(BaseModel):
     price_preference: int | None = None
     
     preferences: dict | None = None
+
+    # Location Update
+    country_code: str | None = None
+    region_id: int | None = None
+    city_id: int | None = None
 
 

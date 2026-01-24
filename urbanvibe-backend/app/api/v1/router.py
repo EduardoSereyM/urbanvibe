@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
 from app.api.v1.auth import router as auth_router
 from app.api.v1.venues.routes import router as venues_public_router
 from app.api.v1.endpoints.profiles import router as profiles_router
+from app.api.v1.endpoints.locations import router as locations_router
 from app.api.v1.venues_admin.router import router as venues_admin_router
 from app.api.v1.admin.router import router as admin_router
 from app.api.v1.endpoints import mobile # BFF
@@ -27,6 +28,7 @@ api_router.include_router(mobile.router, prefix="/mobile", tags=["Mobile BFF"])
 api_router.include_router(health.router, tags=["Health"])
 api_router.include_router(auth_router, tags=["Auth"])
 api_router.include_router(profiles_router, prefix="/profiles", tags=["User Profile"])
+api_router.include_router(locations_router, prefix="/locations", tags=["Locations (Address)"])
 api_router.include_router(venues_public_router, prefix="/venues", tags=["Venues Public"])
 api_router.include_router(venue_team.router, prefix="/venue-team", tags=["Venue Team"])
 api_router.include_router(contact.router, prefix="/contact", tags=["Contact"])

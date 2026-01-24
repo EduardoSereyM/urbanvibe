@@ -18,9 +18,15 @@ class VenueBase(BaseModel):
     
     # Contact & Loc
     address_display: Optional[str] = None
+    
+    # Hierarchical Location
+    country_code: Optional[str] = "CL"
+    region_id: Optional[int] = None
+    city_id: Optional[int] = None
+    
+    # Legacy / Flat fields
     city: Optional[str] = None
     region_state: Optional[str] = None
-    country_code: Optional[str] = "CL"
     website: Optional[str] = None
     contact_email: Optional[str] = None
     contact_phone: Optional[str] = None
@@ -107,9 +113,14 @@ class VenueResponse(VenueBase):
                     
                     # Contact & Location
                     "address_display": data.address_display,
+                    
+                    # Hierarchical Location
+                    "country_code": data.country_code,
+                    "region_id": data.region_id,
+                    "city_id": data.city_id,
+                    
                     "city": data.city,
                     "region_state": data.region_state,
-                    "country_code": data.country_code,
                     "website": data.website,
                     "contact_email": data.contact_email,
                     "contact_phone": getattr(data, 'contact_phone', None),

@@ -13,11 +13,13 @@ from sqlalchemy import (
     FetchedValue,
 )
 from sqlalchemy.orm import relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB, TSVECTOR
+from sqlalchemy.dialects.postgresql import UUID, JSONB, ARRAY, TSVECTOR
+from sqlalchemy import BigInteger
 from sqlalchemy.sql import func
 from geoalchemy2 import Geography
 
-from app.db.base import Base
+from app.models.levels import Level
+from app.models.locations import Country, Region, City
 
 
 class Venue(Base):
@@ -52,10 +54,18 @@ class Venue(Base):
     address_number = Column(String(20), nullable=True)
     directions_tip = Column(Text, nullable=True)
     
-    # Ubicación extendida
-    city = Column(String(100), nullable=True)
-    region_state = Column(String(100), nullable=True)
-    country_code = Column(String(10), nullable=True)
+    # Ubicación extendida (Jerarquica)
+    # country_code ya existe, lo redefinimos como FK
+    country_code = Column(String(10), ForeignKey("public.countries.code"), nullable=True)
+    region_id = Column(BigInteger, ForeignKey("public.regions.id"), nullable=True)
+    city_id = Column(BigInteger, ForeignKey("public.cities.id"), nullable=True) # ID Comuna
+    
+    # Relationships
+    country = relationship("Country", foreign_keys=[country_code])
+    region = relationship("Region", foreign_keys=[region_id])
+    city_obj = relationship("City", foreign_keys=[city_id]) # city_obj evita conflicto con columna legacy 'city' si existe
+    
+    region_state = Column(String(100), nullable=True) # Legacy String? Mantener por seguridad mapbox?
 
     # Precio
     contact_email = Column(String(255), nullable=True)

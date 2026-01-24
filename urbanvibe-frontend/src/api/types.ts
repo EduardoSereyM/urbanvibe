@@ -276,6 +276,8 @@ export interface VenueB2BDetail {
     city?: string;
     region_state?: string;
     country_code?: string;
+    region_id?: number | null;
+    city_id?: number | null;
   };
   opening_hours?: {
     regular: Array<{ day: string; open?: string; close?: string; closed: boolean }>;
@@ -300,6 +302,8 @@ export interface VenueCreatePayload {
     city: string;
     region_state?: string;
     country_code: string;
+    region_id?: number;
+    city_id?: number;
   };
   contact?: {
     phone?: string;
@@ -831,6 +835,11 @@ export interface Profile {
   current_level_name?: string | null;
   current_level_id?: string | null;
   referred_by_user_id?: string | null; // V12.4
+
+  // Location
+  country_code?: string | null;
+  region_id?: number | null;
+  city_id?: number | null;
 }
 
 export interface ClaimResponse {
@@ -870,6 +879,10 @@ export interface ProfileUpdatePayload {
   favorite_cuisines?: string[];
   price_preference?: number;
   current_city?: string;
+
+  country_code?: string;
+  region_id?: number;
+  city_id?: number;
 }
 
 export interface ReviewsListResponse {
