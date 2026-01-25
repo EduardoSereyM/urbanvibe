@@ -185,6 +185,26 @@ export default function AdminDashboardScreen() {
                     )}
                 </View>
 
+                {/* Management Modules */}
+                <Text className="font-heading text-lg text-foreground mb-3">Gestión del Sistema</Text>
+                <View className="flex-row flex-wrap justify-between mb-6">
+                    <TouchableOpacity
+                        onPress={() => router.push('/(admin)/gamification')}
+                        className="bg-surface rounded-2xl p-4 w-[100%] border border-border flex-row items-center justify-between"
+                    >
+                        <View className="flex-row items-center">
+                            <View className="bg-primary/20 p-2 rounded-full mr-3">
+                                <Text className="text-xl">🎮</Text>
+                            </View>
+                            <View>
+                                <Text className="font-bold text-foreground text-lg">Gamificación</Text>
+                                <Text className="text-xs text-foreground-muted">Niveles, Insignias y Retos</Text>
+                            </View>
+                        </View>
+                        <Text className="text-foreground-muted text-lg">→</Text>
+                    </TouchableOpacity>
+                </View>
+
                 <View className="h-10" />
             </ScrollView>
         </View >

@@ -144,6 +144,12 @@ export default function VerifyCodeScreen() {
                             Ingrésalo para desbloquear tu cuenta.
                         </Text>
 
+                        <View className="mb-8 bg-surface-active/50 px-4 py-2 rounded-lg border border-yellow-500/20">
+                            <Text className="text-yellow-500/90 text-xs text-center font-body">
+                                💡 Tip: Si no recibes el código en unos segundos, revisa tu carpeta de Spam o "Correo No Deseado".
+                            </Text>
+                        </View>
+
                         <TextInput
                             className="bg-surface-active text-white font-code text-3xl p-4 rounded-xl text-center tracking-[12px] w-full mb-8 border border-white/10 focus:border-primary"
                             placeholder="000000"

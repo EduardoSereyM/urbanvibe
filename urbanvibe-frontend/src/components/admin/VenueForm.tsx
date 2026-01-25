@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { LocationSelector } from '../LocationSelector';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '../../lib/supabase';
 import { getCoordinatesFromAddress } from '../../utils/geocoding';
@@ -233,10 +234,10 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
     const [loading, setLoading] = useState(false);
     const [geocodingLoading, setGeocodingLoading] = useState(false);
     const [categories, setCategories] = useState<Option[]>([]);
-    const [regions, setRegions] = useState<Option[]>([]);
-    const [cities, setCities] = useState<Option[]>([]);
-    const [selectedRegionId, setSelectedRegionId] = useState<number | null>(null);
-    const [modalVisible, setModalVisible] = useState<{ type: 'category' | 'region' | 'city' | 'document_preview' | null }>({ type: null });
+
+    // Removed internal region/city fetching states as LocationSelector handles it
+
+    const [modalVisible, setModalVisible] = useState<{ type: 'category' | 'document_preview' | null }>({ type: null });
     const { data: userProfile } = useProfile();
     const isSuperAdmin = userProfile?.roles?.includes('SUPER_ADMIN');
 
@@ -245,44 +246,13 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
     const isEditMode = mode === 'edit';
     const isCreateMode = mode === 'create';
 
+    // fetchCategories kept for category selector
     const fetchCategories = async () => {
         const { data, error } = await supabase.from('venue_categories').select('id, name').order('name');
         if (data) setCategories(data.map(c => ({ id: c.id, label: c.name })));
     };
 
-    const fetchRegions = async () => {
-        const { data, error } = await supabase.from('regions').select('id, name').eq('country_code', 'CL').order('name');
-        if (data) setRegions(data.map(r => ({ id: r.id, label: r.name })));
-    };
-
-
-
-    const fetchCities = async (regionId: number) => {
-        console.log('🏙️ Fetching cities for region ID:', regionId);
-        try {
-            const { data, error } = await supabase
-                .from('cities')
-                .select('id, name, region_id')
-                .eq('region_id', regionId)
-                .order('name');
-
-            if (error) {
-                console.error('❌ Error fetching cities:', error);
-                Alert.alert('Error', 'No se pudieron cargar las ciudades. ' + error.message);
-                return;
-            }
-
-            if (data) {
-                console.log(`✅ Loaded ${data.length} cities for region ${regionId}`);
-                if (data.length === 0) {
-                    console.warn('⚠️ No cities found for this region! Check database seeding.');
-                }
-                setCities(data.map(c => ({ id: c.id, label: c.name })));
-            }
-        } catch (err) {
-            console.error('❌ Exception in fetchCities:', err);
-        }
-    };
+    // fetchRegions/fetchCities REMOVED (Handled by LocationSelector)
 
     useEffect(() => {
         if (initialData) {
@@ -347,7 +317,6 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
         }
 
         fetchCategories();
-        fetchRegions();
     }, [initialData]);
 
     useEffect(() => {
@@ -359,24 +328,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
         }
     }, [form.category_id, categories]);
 
-    // NEW: Sync selectedRegionId if form.region_state exists but selectedRegionId doesn't
-    useEffect(() => {
-        if (form.region_state && regions.length > 0 && !selectedRegionId) {
-            const matchedRegion = regions.find(r => r.label === form.region_state);
-            if (matchedRegion) {
-                console.log('Syncing Region ID from Name:', matchedRegion.label, '->', matchedRegion.id);
-                setSelectedRegionId(matchedRegion.id as number);
-            }
-        }
-    }, [form.region_state, regions, selectedRegionId]);
-
-    useEffect(() => {
-        if (selectedRegionId) {
-            fetchCities(selectedRegionId);
-        } else {
-            setCities([]);
-        }
-    }, [selectedRegionId]);
+    // Internal Region/City sync effects REMOVED
 
     const updateForm = (key: string, value: any) => {
         setForm((prev: any) => ({ ...prev, [key]: value }));
@@ -456,6 +408,21 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
 
     const handleSubmit = async () => {
         if (!onSubmit) return;
+
+        // Validation
+        // Validation
+        if (!form.country_code) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar un País.');
+            return;
+        }
+        if (!form.region_id) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar una Región.');
+            return;
+        }
+        if (!form.city_id) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar una Comuna.');
+            return;
+        }
 
         setLoading(true);
         try {
@@ -678,6 +645,23 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         {renderInput('Slogan', 'slogan', 'Una frase que te defina')}
                         {renderInput('Descripción', 'overview', 'Cuenta la historia de tu local...', false, 'default', true)}
                         {renderSelector('Categoría', form.category_label, 'Seleccionar Categoría', () => setModalVisible({ type: 'category' }), true, 'category_id')}
+
+
+
+                        {renderInput('Dirección (Calle)', 'address_street', 'Av. Providencia')}
+                        {renderInput('Número', 'address_number', '1234')}
+                        {renderInput('Datos Extra', 'directions_tip', 'Local 5, 2do Piso')}
+
+                        <TouchableOpacity onPress={handleGeocode} className="bg-surface-active p-3 rounded-xl border border-accent-cyber/20 items-center mt-2 mb-4">
+                            {geocodingLoading ? <ActivityIndicator size="small" /> : <Text className="text-accent-cyber font-body-bold">📍 Validar Ubicación en Mapa</Text>}
+                        </TouchableOpacity>
+
+                        {/* Hidden/Readonly Coords */}
+                        <View className="flex-row gap-2">
+                            {renderInput('Latitud', 'latitude', '0.0', false)}
+                            {renderInput('Longitud', 'longitude', '0.0', false)}
+                        </View>
+
                     </Card>
 
                     {/* CARD 2: CONTACTO */}
@@ -822,22 +806,24 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         <View className="flex-row gap-4">
                             {renderInput('Número', 'address_number', '1234', true)}
                         </View>
-                        <View className="flex-row gap-4">
-                            {renderSelector('Región', form.region_state, 'Seleccionar', () => setModalVisible({ type: 'region' }), true, 'region_state')}
-                            {renderSelector(
-                                'Comuna',
-                                form.city,
-                                form.region_state ? 'Seleccionar' : 'Selecciona Región primero',
-                                () => {
-                                    if (!form.region_state) {
-                                        Alert.alert('Atención', 'Debes seleccionar una región antes de elegir la comuna.');
-                                        return;
-                                    }
-                                    setModalVisible({ type: 'city' });
-                                },
-                                true,
-                                'city'
-                            )}
+                        <View className="flex-row gap-4 mb-4">
+                            <View className="flex-1">
+                                <LocationSelector
+                                    countryCode={form.country_code}
+                                    regionId={form.region_id}
+                                    cityId={form.city_id}
+                                    onCountryChange={(c: string, name?: string) => updateForm('country_code', c)}
+                                    onRegionChange={(id: number, name?: string) => {
+                                        updateForm('region_id', id);
+                                        updateForm('region_state', name || '');
+                                    }}
+                                    onCityChange={(id: number, name?: string) => {
+                                        updateForm('city_id', id);
+                                        updateForm('city', name || '');
+                                    }}
+                                    labelColor="text-foreground-muted font-body-semibold ml-1 text-xs uppercase tracking-wider"
+                                />
+                            </View>
                         </View>
 
                         {renderInput('Tip de Dirección', 'directions_tip', 'Ej: Entrada por el estacionamiento...', false, 'default', true)}
@@ -1151,28 +1137,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                 }}
             />
 
-            <SelectionModal
-                visible={modalVisible.type === 'region'}
-                onClose={() => setModalVisible({ type: null })}
-                title="Seleccionar Región"
-                options={regions}
-                onSelect={(opt) => {
-                    updateForm('region_state', opt.label);
-                    setSelectedRegionId(opt.id as number);
-                    setModalVisible({ type: null });
-                }}
-            />
 
-            <SelectionModal
-                visible={modalVisible.type === 'city'}
-                onClose={() => setModalVisible({ type: null })}
-                title="Seleccionar Ciudad"
-                options={cities}
-                onSelect={(opt) => {
-                    updateForm('city', opt.label);
-                    setModalVisible({ type: null });
-                }}
-            />
 
             <Modal
                 visible={modalVisible.type === 'document_preview'}

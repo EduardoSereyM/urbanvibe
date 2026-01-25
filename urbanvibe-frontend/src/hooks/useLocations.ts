@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { api } from '@/api/client';
+import { client } from '../api/client';
 
 export interface LocationItem {
   id: number;
@@ -25,8 +25,9 @@ export const useLocations = () => {
   const loadCountries = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/locations/countries');
-      setCountries(res.data);
+      const res = await client.get('/locations/countries');
+      const data = res.data;
+      setCountries(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Error loading countries", e);
     } finally {
@@ -42,8 +43,9 @@ export const useLocations = () => {
     try {
       setLoading(true);
       console.log("Fetching regions for:", countryCode);
-      const res = await api.get(`/locations/regions/${countryCode}`);
-      setRegions(res.data);
+      const res = await client.get(`/locations/regions/${countryCode}`);
+      const data = res.data;
+      setRegions(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Error loading regions", e);
       setRegions([]);
@@ -53,15 +55,16 @@ export const useLocations = () => {
   };
 
   const loadCities = async (regionId: number) => {
-      if (!regionId) {
-          setCities([]);
-          return;
-      }
+    if (!regionId) {
+      setCities([]);
+      return;
+    }
     try {
       setLoading(true);
       console.log("Fetching cities for region:", regionId);
-      const res = await api.get(`/locations/cities/${regionId}`);
-      setCities(res.data);
+      const res = await client.get(`/locations/cities/${regionId}`);
+      const data = res.data;
+      setCities(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("Error loading cities", e);
       setCities([]);

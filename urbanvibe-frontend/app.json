@@ -2,7 +2,7 @@
   "expo": {
     "name": "UrbanVibe",
     "slug": "urbanvibe",
-    "version": "1.14.0",
+    "version": "1.14.1",
     "orientation": "portrait",
     "icon": "./assets/images/iconoapp512x512.png",
     "scheme": "urbanvibe",

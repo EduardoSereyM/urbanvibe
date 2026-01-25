@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+// import ImageViewing from "react-native-image-viewing"; // Removed due to error
 import React, { useState, useRef } from 'react';
 import {
     ActivityIndicator,
@@ -25,8 +26,9 @@ import { client } from '../../../src/api/client';
 import { Alert, Modal, TextInput, KeyboardAvoidingView } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
 import type { UserPromotionBFFItem } from '../../../src/types';
-import QRScannerModal from '../../../src/components/QRScannerModal'; // Import Scanner
+import QRScannerModal from '../../../src/components/QRScannerModal';
 import VenueInvitationModal from '../../../src/components/modals/VenueInvitationModal';
+import ImageViewerModal from '../../../src/components/modals/ImageViewerModal';
 
 const { width, height } = Dimensions.get('window');
 const HEADER_HEIGHT = 200;
@@ -59,9 +61,14 @@ export default function VenueDetailScreen() {
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
+    // Fixed: Restore scannerVisible
     const [scannerVisible, setScannerVisible] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [showInvitationModal, setShowInvitationModal] = useState(false);
+
+    // Image Viewer
+    const [viewerVisible, setViewerVisible] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const handleCheckinSuccess = () => {
         setSuccessMessage("¡Check-in exitoso! Has ganado puntos.");
@@ -363,7 +370,9 @@ export default function VenueDetailScreen() {
                         <ActionButton
                             icon="share-outline"
                             label="Compartir"
-                            onPress={handleShare}
+                            onPress={() => { }}
+                            disabled={true}
+                        // TODO: Implement share functionality properly (Deep linking / Social Share)
                         />
                         <ActionButton
                             icon="call"
@@ -492,43 +501,44 @@ export default function VenueDetailScreen() {
 
                     {activeTab === 'menu' && (
                         <View className="py-6">
+                            <Text className="text-foreground font-brand text-xl mb-4">Menú del Local</Text>
+
                             {venue.menu_media_urls && venue.menu_media_urls.length > 0 ? (
-                                <View>
-                                    <Text className="text-foreground font-brand text-xl mb-4">Menú</Text>
-                                    <TouchableOpacity
-                                        onPress={() => {
-                                            const firstMenu = venue.menu_media_urls![0];
-                                            if (firstMenu.url) {
-                                                Linking.openURL(firstMenu.url).catch(err =>
-                                                    Alert.alert('Error', 'No se pudo abrir el menú')
-                                                );
-                                            }
-                                        }}
-                                        className="bg-surface border border-surface-active rounded-xl p-6 items-center"
-                                    >
-                                        <View className="w-20 h-20 bg-primary/20 rounded-full items-center justify-center mb-4">
-                                            <Ionicons name="document-text" size={40} color="#FA4E35" />
-                                        </View>
-                                        <Text className="text-foreground font-brand text-lg mb-2">
-                                            {venue.menu_media_urls[0].name || 'Menú Digital'}
-                                        </Text>
-                                        <Text className="text-foreground-muted text-sm mb-4 text-center">
-                                            Toca para ver el menú completo
-                                        </Text>
-                                        <View className="flex-row items-center gap-2 bg-primary px-4 py-2 rounded-lg">
-                                            <Ionicons name="open-outline" size={18} color="white" />
-                                            <Text className="text-white font-bold">Abrir PDF</Text>
-                                        </View>
-                                    </TouchableOpacity>
+                                <View className="flex-row flex-wrap gap-3">
+                                    {venue.menu_media_urls.map((item: any, index: number) => {
+                                        // Prioritize showing images. If typing is ambiguous, assume image if url presents.
+                                        // You might want to filter by item.type === 'image' if strict.
+                                        return (
+                                            <TouchableOpacity
+                                                key={index}
+                                                onPress={() => {
+                                                    setCurrentImageIndex(index);
+                                                    setViewerVisible(true);
+                                                }}
+                                                className="w-[48%] aspect-[3/4] rounded-xl bg-surface border border-surface-active overflow-hidden relative"
+                                            >
+                                                <Image
+                                                    source={{ uri: item.url }}
+                                                    className="w-full h-full"
+                                                    resizeMode="cover"
+                                                />
+                                                <View className="absolute bottom-0 left-0 right-0 bg-black/60 p-2">
+                                                    <Text className="text-white text-xs font-bold" numberOfLines={1}>
+                                                        {item.name || `Página ${index + 1}`}
+                                                    </Text>
+                                                </View>
+                                            </TouchableOpacity>
+                                        );
+                                    })}
                                 </View>
                             ) : (
                                 <View className="items-center justify-center py-10">
                                     <View className="w-16 h-16 bg-surface rounded-full items-center justify-center mb-4">
-                                        <Ionicons name="fast-food-outline" size={32} color="#606270" />
+                                        <Ionicons name="images-outline" size={32} color="#606270" />
                                     </View>
-                                    <Text className="text-foreground font-brand text-lg">Menú Digital</Text>
+                                    <Text className="text-foreground font-brand text-lg">Sin Imágenes</Text>
                                     <Text className="text-foreground-muted text-center mt-2 px-8">
-                                        Este local aún no ha subido su menú digital.
+                                        Este local no ha subido fotos de su menú.
                                     </Text>
                                 </View>
                             )}
@@ -676,6 +686,20 @@ export default function VenueDetailScreen() {
                 onClose={() => setShowInvitationModal(false)}
                 venueId={venueId as string}
                 venueName={venue.name}
+            />
+
+            {/* <ImageViewing
+                images={(venue.menu_media_urls || []).map((item: any) => ({ uri: item.url }))}
+                imageIndex={currentImageIndex}
+                visible={viewerVisible}
+                onRequestClose={() => setViewerVisible(false)}
+            /> */}
+
+            <ImageViewerModal
+                images={(venue.menu_media_urls || []).map((item: any) => ({ uri: item.url, name: item.name }))}
+                initialIndex={currentImageIndex}
+                visible={viewerVisible}
+                onClose={() => setViewerVisible(false)}
             />
         </View>
     );

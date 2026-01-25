@@ -4,6 +4,8 @@ import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, Tou
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
+import { client, updateProfile } from '../../src/api/client';
+import { LocationSelector } from '../../src/components/LocationSelector';
 
 export default function RegisterVenueScreen() {
     const router = useRouter();
@@ -15,6 +17,33 @@ export default function RegisterVenueScreen() {
     const [isConfirmed, setIsConfirmed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [invitationCode, setInvitationCode] = useState('');
+
+    // Location
+    const [countryCode, setCountryCode] = useState('CL');
+    const [regionId, setRegionId] = useState<number | undefined>(undefined);
+    const [cityId, setCityId] = useState<number | undefined>(undefined);
+
+    // Invitation Validation
+    const [invitationStatus, setInvitationStatus] = useState<'valid' | 'invalid' | null>(null);
+    const [invitationOwner, setInvitationOwner] = useState('');
+
+    const validateInvitation = async (code: string) => {
+        if (!code) {
+            setInvitationStatus(null);
+            return;
+        }
+        try {
+            const res = await client.get(`/invitations/validate/${code}`);
+            if (res.data.valid) {
+                setInvitationStatus('valid');
+                setInvitationOwner(res.data.owner_name || 'Partner');
+            } else {
+                setInvitationStatus('invalid');
+            }
+        } catch (error) {
+            setInvitationStatus('invalid');
+        }
+    };
 
     const validatePassword = (pass: string) => {
         const minLength = /.{8,}/;
@@ -39,7 +68,20 @@ export default function RegisterVenueScreen() {
         }
 
         if (fullName.length < 5 || username.length < 5) {
-            Alert.alert('Detalle requerido', 'El nombre y el usuario deben tener al menos 5 caracteres ppara verificado.');
+            Alert.alert('Detalle requerido', 'El nombre y el usuario deben tener al menos 5 caracteres.');
+            return;
+        }
+
+        if (!countryCode) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar un País.');
+            return;
+        }
+        if (!regionId) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar una Región.');
+            return;
+        }
+        if (!cityId) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar tu Comuna para continuar.');
             return;
         }
 
@@ -79,6 +121,15 @@ export default function RegisterVenueScreen() {
                         role: 'VENUE_OWNER',
                         invitation_code: invitationCode || null
                     });
+
+                    // 2. Update Profile with Location (Explicitly)
+                    console.log("📍 Updating venue owner profile location...");
+                    await updateProfile({
+                        country_code: countryCode,
+                        region_id: regionId,
+                        city_id: cityId
+                    });
+
                 } catch (e) {
                     console.log("Error notifying venue owner creation", e);
                 }
@@ -162,7 +213,7 @@ export default function RegisterVenueScreen() {
 
                         {/* Username */}
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Usuario (@usuario)</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Usuario (@usuario)</Text>
                             <TextInput
                                 className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-accent-cyber"
                                 style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
@@ -176,7 +227,7 @@ export default function RegisterVenueScreen() {
 
                         {/* Email */}
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Email Corporativo</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Email Corporativo</Text>
                             <TextInput
                                 className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-accent-cyber"
                                 style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
@@ -191,7 +242,7 @@ export default function RegisterVenueScreen() {
 
                         {/* Password */}
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Contraseña</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Contraseña</Text>
                             <View className="relative justify-center">
                                 <TextInput
                                     className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-accent-cyber pr-12"
@@ -211,45 +262,84 @@ export default function RegisterVenueScreen() {
                             </View>
                         </View>
 
-                        <View>
-                            <View className="flex-row items-center mb-2 ml-1">
-                                <Ionicons name="gift-outline" size={16} color="#00F0FF" />
-                                <Text className="text-foreground font-body-semibold ml-2">¿Fuiste invitado por un Embajador?</Text>
-                            </View>
+                    </View>
+
+                    {/* Invitation Code (New) */}
+                    <View>
+                        <View className="flex-row items-center mt-4 mb-2 ml-1">
+                            <Ionicons name="gift-outline" size={16} color="#00F0FF" />
+                            <Text className="text-foreground font-body-semibold ml-2">¿Tienes un código de invitación?</Text>
+                        </View>
+                        <View className="relative justify-center">
                             <TextInput
-                                className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-accent-cyber"
+                                className={`text-foreground font-body p-4 rounded-xl border ${invitationStatus === 'valid' ? 'border-green-500' : invitationStatus === 'invalid' ? 'border-red-500' : 'border-surface-active'} focus:border-accent-cyber`}
                                 style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
-                                placeholder="CÓDIGO DE EMBAJADOR (OPCIONAL)"
+                                placeholder="CÓDIGO (OPCIONAL)"
                                 placeholderTextColor="#828BA0"
                                 value={invitationCode}
-                                onChangeText={setInvitationCode}
+                                onChangeText={(t) => {
+                                    setInvitationCode(t);
+                                    if (t === '') setInvitationStatus(null);
+                                }}
+                                onBlur={() => validateInvitation(invitationCode)}
                                 autoCapitalize="characters"
                             />
+                            {invitationStatus === 'valid' && (
+                                <View className="absolute right-4 bg-green-500/20 p-1 rounded-full">
+                                    <Ionicons name="checkmark" size={20} color="#22c55e" />
+                                </View>
+                            )}
+                            {invitationStatus === 'invalid' && (
+                                <View className="absolute right-4 bg-red-500/20 p-1 rounded-full">
+                                    <Ionicons name="close" size={20} color="#ef4444" />
+                                </View>
+                            )}
                         </View>
-
-                        {/* Terms & Confirmation Checkbox */}
-                        <TouchableOpacity
-                            className="flex-row items-start mt-4 mb-2"
-                            onPress={() => setIsConfirmed(!isConfirmed)}
-                        >
-                            <View className={`w-6 h-6 rounded border ${isConfirmed ? 'bg-accent-cyber border-accent-cyber' : 'border-gray-500'} items-center justify-center mr-3 mt-1`}>
-                                {isConfirmed && <Ionicons name="checkmark" size={16} color="white" />}
-                            </View>
-                            <Text className="flex-1 text-foreground-muted text-sm leading-5">
-                                Declaro que soy dueño/administrador de un local establecido y poseo la documentación legal que lo acredita.
-                            </Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            className={`bg-accent-cyber py-4 rounded-full items-center shadow-lg mt-4 ${loading || !isFormValid ? 'opacity-50' : ''}`}
-                            onPress={handleRegister}
-                            disabled={loading || !isFormValid}
-                        >
-                            <Text className="text-white font-brand text-lg">
-                                {loading ? 'Creando cuenta...' : 'Comenzar'}
-                            </Text>
-                        </TouchableOpacity>
+                        {invitationStatus === 'invalid' && (
+                            <Text className="text-red-500 text-xs ml-1 mt-1 font-body">Código no encontrado o expirado</Text>
+                        )}
+                        {invitationStatus === 'valid' && (
+                            <Text className="text-green-500 text-xs ml-1 mt-1 font-body">Código válido: {invitationOwner}</Text>
+                        )}
                     </View>
+
+
+                    <View className="mt-6 p-4 border-2 border-solid border-accent-cyber rounded-xl bg-surface-deep/50">
+                        <Text className="text-accent-cyber font-brand text-lg mb-2 text-center">Ubicación del Local</Text>
+                        <LocationSelector
+                            countryCode={countryCode}
+                            regionId={regionId}
+                            cityId={cityId}
+                            onCountryChange={(c) => { setCountryCode(c); setRegionId(undefined); setCityId(undefined); }}
+                            onRegionChange={(r) => { setRegionId(r); setCityId(undefined); }}
+                            onCityChange={(c) => setCityId(c)}
+                            labelColor='text-foreground font-body-semibold ml-1'
+                        />
+                    </View>
+
+                    {/* Terms & Confirmation Checkbox */}
+                    <TouchableOpacity
+                        className="flex-row items-start mt-4 mb-2"
+                        onPress={() => setIsConfirmed(!isConfirmed)}
+                    >
+                        <View className={`w-6 h-6 rounded border ${isConfirmed ? 'bg-accent-cyber border-accent-cyber' : 'border-gray-500'} items-center justify-center mr-3 mt-1`}>
+                            {isConfirmed && <Ionicons name="checkmark" size={16} color="white" />}
+                        </View>
+                        <Text className="flex-1 text-foreground-muted text-sm leading-5">
+                            Declaro que soy dueño/administrador de un local establecido y poseo la documentación legal que lo acredita.
+                        </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        className={`bg-accent-cyber py-4 rounded-full items-center shadow-lg mt-4 ${loading || !isFormValid ? 'opacity-50' : ''}`}
+                        onPress={handleRegister}
+                        disabled={loading || !isFormValid}
+                    >
+                        <Text className="text-white font-brand text-lg">
+                            {loading ? 'Creando cuenta...' : 'Comenzar'}
+                        </Text>
+                    </TouchableOpacity>
+
 
                     <View className="mt-8 flex-row justify-center pb-8">
                         <Text className="text-foreground-muted font-body">¿Ya eres Partner? </Text>
@@ -259,6 +349,6 @@ export default function RegisterVenueScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 }

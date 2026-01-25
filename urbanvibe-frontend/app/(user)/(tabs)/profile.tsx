@@ -445,7 +445,6 @@ export default function ProfileScreen() {
                   multiline
                   textAlignVertical='top'
                 />
-                />
               </View>
 
               <View className="my-4">
@@ -469,17 +468,7 @@ export default function ProfileScreen() {
               {/* Website Removed */}
 
               <View className="flex-row gap-3 my-4">
-                <View className="flex-1">
-                  <Text className="text-foreground text-xs mb-4 ml-1 font-body-bold">RUT / ID</Text>
-                  <TextInput
-                    value={editNationalId}
-                    onChangeText={handleRutChange}
-                    onBlur={handleRutBlur}
-                    className="bg-surface text-foreground font-body p-3 rounded-xl border border-surface-active"
-                    placeholder="12.345.678-9"
-                    placeholderTextColor="#6B7280"
-                  />
-                </View>
+
                 <View className="flex-1">
                   <Text className="text-foreground text-xs mb-4 ml-1 font-body-bold">Fecha de nacimiento</Text>
                   <TextInput
@@ -612,7 +601,7 @@ export default function ProfileScreen() {
               {(profile.national_id || profile.birth_date || profile.is_influencer) && (
                 <View className="flex-row flex-wrap gap-2 justify-center mt-1 mb-3">
                   {profile.is_influencer && <View className="bg-purple-500/20 px-2 py-1 rounded border border-purple-500/50"><Text className="text-purple-400 text-[10px] font-bold">INFLUENCER</Text></View>}
-                  {profile.national_id && <View className="bg-surface-active px-2 py-1 rounded"><Text className="text-foreground-muted text-[10px]">🪪 RUT: {profile.national_id}</Text></View>}
+
                   {profile.birth_date && <View className="bg-surface-active px-2 py-1 rounded"><Text className="text-foreground-muted text-[10px]">🎂 {formatDateToDDMMYYYY(profile.birth_date)}</Text></View>}
                   {/* {profile.gender && <View className="bg-surface-active px-2 py-1 rounded"><Text className="text-foreground-muted text-[10px]">{profile.gender}</Text></View>} */}
                   {profile.price_preference && <View className="bg-surface-active px-2 py-1 rounded"><Text className="text-success text-[10px]">Presupuesto: {'$'.repeat(profile.price_preference)}</Text></View>}

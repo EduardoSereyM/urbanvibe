@@ -36,23 +36,50 @@ export default function LoginScreen() {
 
     async function signInWithEmail() {
         if (!email || !password) {
-            Alert.alert('Error', 'Por favor ingresa email y contraseña');
+            Alert.alert('Datos Incompletos', 'Por favor ingresa tu correo electrónico y contraseña.');
             return;
         }
 
         setLoading(true);
-        const { error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
 
-        if (error) {
-            Alert.alert('Error de Autenticación', error.message);
-            setLoading(false);
-        } else {
-            // Login exitoso - detectar rol del usuario
+        try {
+
+
+            // -----------------------------------------------------------
+            // 2. Intento de Login Real
+            // -----------------------------------------------------------
+            const { error } = await supabase.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
+            if (error) {
+                let errorMessage = 'Ocurrió un error al iniciar sesión. Intenta nuevamente.';
+                let errorTitle = 'Error de Autenticación';
+
+                // Traducción de errores comunes de Supabase
+                if (error.message.includes('Invalid login credentials')) {
+                    // Si llegamos aquí y ya validamos el correo (o si la validación falló pero el login también),
+                    // es muy probable que sea la contraseña.
+                    errorMessage = 'La contraseña ingresada es incorrecta.';
+                } else if (error.message.includes('Email not confirmed')) {
+                    errorMessage = 'Tu correo electrónico no ha sido confirmado. Por favor revisa tu bandeja de entrada.';
+                    errorTitle = 'Correo no verificado';
+                }
+
+                Alert.alert(errorTitle, errorMessage);
+                setLoading(false);
+                return;
+            }
+
+            // Login exitoso
             console.log('✅ Login exitoso, detectando rol...');
             await handlePostLogin();
+
+        } catch (err) {
+            console.error('Unexpected login error:', err);
+            Alert.alert('Error', 'Ocurrió un error inesperado. Por favor intenta nuevamente.');
+            setLoading(false);
         }
     }
 

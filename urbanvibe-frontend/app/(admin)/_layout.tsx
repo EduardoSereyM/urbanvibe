@@ -16,6 +16,11 @@ export default function AdminLayout() {
             <Stack.Screen name="venues/[venueId]" />
             <Stack.Screen name="users/index" />
             <Stack.Screen name="users/[userId]" />
+            <Stack.Screen name="gamification/index" />
+            <Stack.Screen name="gamification/levels" />
+            <Stack.Screen name="gamification/badges" />
+            <Stack.Screen name="gamification/challenges" />
+
         </Stack>
     );
 }

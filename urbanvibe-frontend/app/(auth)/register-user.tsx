@@ -4,7 +4,8 @@ import { Alert, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, Tou
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { supabase } from '../../src/lib/supabase';
-import { client } from '../../src/api/client';
+import { client, updateProfile } from '../../src/api/client';
+import { LocationSelector } from '../../src/components/LocationSelector';
 
 export default function RegisterUserScreen() {
     const router = useRouter();
@@ -15,6 +16,43 @@ export default function RegisterUserScreen() {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [invitationCode, setInvitationCode] = useState('');
+
+    // Location
+    const [countryCode, setCountryCode] = useState('CL');
+    const [regionId, setRegionId] = useState<number | undefined>(undefined);
+    const [cityId, setCityId] = useState<number | undefined>(undefined);
+
+    // Invitation Validation
+    const [invitationStatus, setInvitationStatus] = useState<'valid' | 'invalid' | null>(null);
+    const [invitationOwner, setInvitationOwner] = useState('');
+
+    const validateInvitation = async (code: string) => {
+        console.log("🔍 Validating invitation code:", code);
+        if (!code) {
+            setInvitationStatus(null);
+            return;
+        }
+        try {
+            console.log(`📤 Sending request to /invitations/validate/${code}`);
+            const res = await client.get(`/invitations/validate/${code}`);
+            console.log("✅ Response:", res.data);
+
+            if (res.data.valid) {
+                setInvitationStatus('valid');
+                setInvitationOwner(res.data.owner_name || 'Partner');
+            } else {
+                console.warn("❌ Verification returned invalid:", res.data);
+                setInvitationStatus('invalid');
+            }
+        } catch (error: any) {
+            console.error("❌ Error validating code:", error);
+            if (error.response) {
+                console.log("Error Status:", error.response.status);
+                console.log("Error Data:", error.response.data);
+            }
+            setInvitationStatus('invalid');
+        }
+    };
 
     function validatePassword(pass: string) {
         // Reglas: Min 8 chars, Lower, Upper, Digit, Symbol
@@ -41,6 +79,19 @@ export default function RegisterUserScreen() {
 
         if (fullName.length < 5 || username.length < 5) {
             Alert.alert('Campos muy cortos', 'El nombre y el usuario deben tener al menos 5 caracteres.');
+            return;
+        }
+
+        if (!countryCode) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar un País.');
+            return;
+        }
+        if (!regionId) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar una Región.');
+            return;
+        }
+        if (!cityId) {
+            Alert.alert('Falta Ubicación', 'Debes seleccionar tu Comuna para continuar.');
             return;
         }
 
@@ -84,6 +135,15 @@ export default function RegisterUserScreen() {
                         role: 'APP_USER',
                         invitation_code: invitationCode || null
                     });
+
+                    // 2. Update Profile with Location (Explicitly)
+                    console.log("📍 Updating profile location...");
+                    await updateProfile({
+                        country_code: countryCode,
+                        region_id: regionId,
+                        city_id: cityId
+                    });
+
                 } catch (err) {
                     console.log("⚠️ Error notificando usuario:", err);
                 }
@@ -151,7 +211,7 @@ export default function RegisterUserScreen() {
                         </View>
 
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Nombre de Usuario (como te llamaremos en la app)</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Nombre de Usuario (como te llamaremos en la app)</Text>
                             <TextInput
                                 className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-primary"
                                 style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
@@ -164,7 +224,7 @@ export default function RegisterUserScreen() {
                         </View>
 
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Email</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Email</Text>
                             <TextInput
                                 className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-primary"
                                 style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
@@ -178,7 +238,7 @@ export default function RegisterUserScreen() {
                         </View>
 
                         <View>
-                            <Text className="text-foreground font-body-semibold mb-2 ml-1">Contraseña</Text>
+                            <Text className="text-foreground font-body-semibold mt-4 mb-2 ml-1">Contraseña</Text>
                             <View className="relative justify-center">
                                 <TextInput
                                     className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-primary pr-12"
@@ -199,18 +259,54 @@ export default function RegisterUserScreen() {
                         </View>
 
                         <View>
-                            <View className="flex-row items-center mb-2 ml-1">
+                            <View className="flex-row items-center mt-4 mb-2 ml-1">
                                 <Ionicons name="gift-outline" size={16} color="#FA4E35" />
                                 <Text className="text-foreground font-body-semibold ml-2">¿Tienes un código de invitación?</Text>
                             </View>
-                            <TextInput
-                                className="text-foreground font-body p-4 rounded-xl border border-surface-active focus:border-primary"
-                                style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
-                                placeholder="CÓDIGO (OPCIONAL)"
-                                placeholderTextColor="#828BA0"
-                                value={invitationCode}
-                                onChangeText={setInvitationCode}
-                                autoCapitalize="characters"
+                            <View className="relative justify-center">
+                                <TextInput
+                                    className={`text-foreground font-body p-4 rounded-xl border ${invitationStatus === 'valid' ? 'border-green-500' : invitationStatus === 'invalid' ? 'border-red-500' : 'border-surface-active'} focus:border-primary`}
+                                    style={{ backgroundColor: 'hsl(233, 43%, 24%)', color: 'hsl(210, 5%, 95%)' }}
+                                    placeholder="CÓDIGO (OPCIONAL)"
+                                    placeholderTextColor="#828BA0"
+                                    value={invitationCode}
+                                    onChangeText={(t) => {
+                                        setInvitationCode(t);
+                                        if (t === '') setInvitationStatus(null);
+                                    }}
+                                    onBlur={() => validateInvitation(invitationCode)}
+                                    autoCapitalize="characters"
+                                />
+                                {invitationStatus === 'valid' && (
+                                    <View className="absolute right-4 bg-green-500/20 p-1 rounded-full">
+                                        <Ionicons name="checkmark" size={20} color="#22c55e" />
+                                    </View>
+                                )}
+                                {invitationStatus === 'invalid' && (
+                                    <View className="absolute right-4 bg-red-500/20 p-1 rounded-full">
+                                        <Ionicons name="close" size={20} color="#ef4444" />
+                                    </View>
+                                )}
+                            </View>
+                            {invitationStatus === 'invalid' && (
+                                <Text className="text-red-500 text-xs ml-1 mt-1 font-body">Código no encontrado o expirado</Text>
+                            )}
+                            {invitationStatus === 'valid' && (
+                                <Text className="text-green-500 text-xs ml-1 mt-1 font-body">Código válido: {invitationOwner}</Text>
+                            )}
+                        </View>
+
+                        <View className="mt-6 p-4 border-2 border-solid border-primary rounded-xl bg-surface-deep/50">
+                            <Text className="text-primary font-brand text-lg mb-2 text-center">Donde Vives 🗺️</Text>
+                            <LocationSelector
+                                countryCode={countryCode}
+                                regionId={regionId}
+                                cityId={cityId}
+                                onCountryChange={(c) => { setCountryCode(c); setRegionId(undefined); setCityId(undefined); }}
+                                onRegionChange={(r) => { setRegionId(r); setCityId(undefined); }}
+                                onCityChange={(c) => setCityId(c)}
+                                labelColor='text-foreground font-body-semibold ml-1'
+                                pickerContainerClasses="rounded-xl border border-surface-active focus:border-primary overflow-hidden"
                             />
                         </View>
 

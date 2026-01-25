@@ -38,31 +38,27 @@ export default function AdminMenuScreen() {
     return (
         <SafeAreaView className="flex-1 bg-background px-6">
             <View className="flex-1">
-                <Text className="font-brand text-4xl text-foreground text-center mt-8">
+                <Text className="font-brand text-3xl text-foreground text-center mt-8">
                     Bienvenido
                 </Text>
-                <Text className="font-brand text-3xl text-primary text-center mb-4">
+                <Text className="font-brand text-2xl text-primary text-center mb-4">
                     {profile?.username || 'Administrador'}
                 </Text>
 
-                <Text className="font-body text-foreground-muted text-center">
-                    ¿Que vamos a administrar hoy?
-                </Text>
-
                 <View className="flex-1 justify-center mb-8">
-                    {/* Opción 1: Panel de Locales (Admin) */}
+                    {/* Opción 1: Panel de Administración (Dashboard) - Principal */}
                     <TouchableOpacity
-                        onPress={() => router.push('/(admin)/venues/list')}
-                        className="bg-surface border-2 border-primary rounded-2xl p-6 mb-4"
+                        onPress={() => router.push('/(admin)/dashboard')}
+                        className="bg-surface border-2 border-warning rounded-2xl p-6 mb-4"
                     >
                         <View className="flex-row items-center">
-                            <Text className="text-4xl mr-4">🏪</Text>
+                            <Text className="text-4xl mr-4">⚙️</Text>
                             <View className="flex-1">
                                 <Text className="font-brand text-xl text-foreground mb-1">
-                                    Panel de Locales
+                                    Panel de Administración
                                 </Text>
                                 <Text className="font-body text-sm text-foreground-muted">
-                                    Ver y administrar todos los locales del sistema
+                                    Gestiona usuarios, locales y configuración global
                                 </Text>
                             </View>
                         </View>
@@ -86,25 +82,43 @@ export default function AdminMenuScreen() {
                         </View>
                     </TouchableOpacity>
 
-                    {/* Opción 3: Panel de Administración */}
+                    {/* Opción 3: Panel de Locales */}
                     <TouchableOpacity
-                        onPress={() => router.push('/(admin)/dashboard')}
-                        className="bg-surface border-2 border-warning rounded-2xl p-6 mb-4"
+                        onPress={() => router.push('/(admin)/venues/list')}
+                        className="bg-surface border-2 border-primary rounded-2xl p-6 mb-4"
                     >
                         <View className="flex-row items-center">
-                            <Text className="text-4xl mr-4">⚙️</Text>
+                            <Text className="text-4xl mr-4">🏪</Text>
                             <View className="flex-1">
                                 <Text className="font-brand text-xl text-foreground mb-1">
-                                    Panel de Administración
+                                    Panel de Locales
                                 </Text>
                                 <Text className="font-body text-sm text-foreground-muted">
-                                    Gestiona usuarios, locales y configuración global
+                                    Ver y administrar todos los locales del sistema
                                 </Text>
                             </View>
                         </View>
                     </TouchableOpacity>
 
-                    {/* Opción 4: Crear Negocio */}
+                    {/* Opción 4: Gamificación */}
+                    <TouchableOpacity
+                        onPress={() => router.push('/(admin)/gamification')}
+                        className="bg-surface border-2 border-purple-500 rounded-2xl p-6 mb-4"
+                    >
+                        <View className="flex-row items-center">
+                            <Text className="text-4xl mr-4">🎮</Text>
+                            <View className="flex-1">
+                                <Text className="font-brand text-xl text-foreground mb-1">
+                                    Gamificación
+                                </Text>
+                                <Text className="font-body text-sm text-foreground-muted">
+                                    Niveles, Insignias y Retos
+                                </Text>
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Opción 5: Crear Negocio */}
                     <TouchableOpacity
                         onPress={() => router.push('/(admin)/venues/create')}
                         className="bg-surface border-2 border-success rounded-2xl p-6"
