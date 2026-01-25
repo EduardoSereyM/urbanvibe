@@ -3,12 +3,14 @@ from uuid import UUID
 from datetime import datetime, timedelta
 
 from sqlalchemy import select, and_, or_, func, text, desc
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import HTTPException, status
 from geoalchemy2.shape import from_shape
 from shapely.geometry import Point
 
 from app.models.venues import Venue
+from app.models.locations import City
 from app.models.profiles import Profile
 from app.api.v1.admin.schemas import (
     VenueOwnerInfo,
@@ -145,7 +147,7 @@ async def get_all_venues(
         limit = 100
     
     # Base query
-    query = select(Venue).where(Venue.deleted_at.is_(None))
+    query = select(Venue).options(selectinload(Venue.city_obj)).where(Venue.deleted_at.is_(None))
     
     # Filtro de búsqueda
     if search:
@@ -207,7 +209,7 @@ async def get_all_venues(
             id=venue.id,
             name=venue.name,
             legal_name=venue.legal_name,
-            city=venue.city,
+            city=venue.city_obj.name if venue.city_obj else "Sin Ciudad",
             address_display=venue.address_display,
             verification_status=venue.verification_status or "pending",
             operational_status=venue.operational_status or "open",
@@ -274,7 +276,7 @@ async def get_venue_admin_detail(
         is_founder_venue=venue.is_founder_venue or False,
         address=VenueAddressInfo(
             address_display=venue.address_display,
-            city=venue.city,
+            city=venue.city_obj.name if venue.city_obj else None,
             region_state=venue.region_state,
             country_code=venue.country_code,
             latitude=venue.latitude,
@@ -578,10 +580,12 @@ async def get_system_metrics(
     v_closed = await db.execute(select(func.count(Venue.id)).where(Venue.operational_status != 'open'))
     
     # By City (Top 5)
+    # Join with City table and group by city name
     city_res = await db.execute(
-        select(Venue.city, func.count(Venue.id).label('count'))
-        .where(Venue.city.is_not(None))
-        .group_by(Venue.city)
+        select(City.name, func.count(Venue.id).label('count'))
+        .join(Venue.city_obj)
+        .where(Venue.deleted_at.is_(None))
+        .group_by(City.name)
         .order_by(desc('count'))
         .limit(5)
     )
@@ -623,6 +627,7 @@ async def get_system_metrics(
     # --- Top Venues ---
     top_venues_res = await db.execute(
         select(Venue)
+        .options(selectinload(Venue.city_obj))
         .order_by(Venue.rating_average.desc(), Venue.review_count.desc())
         .limit(5)
     )
@@ -631,7 +636,7 @@ async def get_system_metrics(
         top_venues.append(TopVenue(
             id=v.id,
             name=v.name,
-            city=v.city,
+            city=v.city_obj.name if v.city_obj else "Sin Ciudad",
             rating_average=v.rating_average or 0.0,
             total_reviews=v.review_count or 0,
             total_verified_visits=v.verified_visits_all_time or 0
@@ -732,7 +737,9 @@ async def get_all_users(
             p.username,
             ar.name as role_name,
             p.full_name,
-            p.display_name as profile_display_name
+            p.display_name as profile_display_name,
+            (SELECT count(*) FROM public.venues v WHERE v.owner_id = u.id AND v.deleted_at IS NULL) as total_venues,
+            p.reviews_count as total_reviews
         FROM public.profiles p
         JOIN auth.users u ON p.id = u.id
         LEFT JOIN public.app_roles ar ON p.role_id = ar.id
@@ -804,8 +811,8 @@ async def get_all_users(
             last_sign_in_at=row[6],
             is_active=row[7],
             username=row[8],
-            total_venues=0, # TODO: count
-            total_reviews=0 # TODO: count
+            total_venues=row[12] or 0,
+            total_reviews=row[13] or 0
         ))
         
     return UserAdminListResponse(

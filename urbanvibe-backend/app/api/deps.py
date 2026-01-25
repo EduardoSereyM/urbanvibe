@@ -136,7 +136,7 @@ async def get_current_active_superuser(
     Checks if the current user is a superuser.
     """
     # 1. Hardcoded email check (Simplest for now)
-    superuser_emails = ["administradorapp@urbanvibe.cl"]
+    superuser_emails = ["administradorapp@urbanvibe.cl", "admin@urbanvibe.cl"]
     if current_user.email in superuser_emails:
         return current_user
         

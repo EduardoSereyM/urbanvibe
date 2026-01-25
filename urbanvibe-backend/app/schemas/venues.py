@@ -119,7 +119,7 @@ class VenueResponse(VenueBase):
                     "region_id": data.region_id,
                     "city_id": data.city_id,
                     
-                    "city": data.city,
+                    "city": data.city_obj.name if getattr(data, 'city_obj', None) else None,
                     "region_state": data.region_state,
                     "website": data.website,
                     "contact_email": data.contact_email,

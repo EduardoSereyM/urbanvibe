@@ -20,6 +20,7 @@ from geoalchemy2 import Geography
 
 from app.models.levels import Level
 from app.models.locations import Country, Region, City
+from app.db.base import Base
 
 
 class Venue(Base):

@@ -45,3 +45,5 @@ api_router.include_router(gamification_admin_router, prefix="/admin/gamification
 api_router.include_router(friends.router, prefix="/friends", tags=["Friends Social"])
 api_router.include_router(gamification_router, prefix="/gamification", tags=["Gamification User"])
 api_router.include_router(groups.router, prefix="/groups", tags=["Groups Social"])
+from app.api.v1.endpoints import invitations
+api_router.include_router(invitations.router, prefix="/invitations", tags=["Invitations"])

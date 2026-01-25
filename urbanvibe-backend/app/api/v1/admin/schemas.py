@@ -347,7 +347,7 @@ class UserAdminDetail(BaseModel):
     reputation_score: int = 0
     points_current: int = 0
     points_lifetime: int = 0
-    current_level_id: Optional[int] = None
+    current_level_id: Optional[UUID] = None
     reviews_count: int = 0
     photos_count: int = 0
     verified_checkins_count: int = 0
