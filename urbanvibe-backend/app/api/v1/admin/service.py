@@ -215,6 +215,7 @@ async def get_all_venues(
             operational_status=venue.operational_status or "open",
             is_operational=(venue.operational_status == "open"),
             is_verified=venue.is_verified or False,
+            is_testing=venue.is_testing or False,
             rating_average=venue.rating_average or 0.0,
             review_count=venue.review_count or 0,
             verified_visits_all_time=venue.verified_visits_all_time or 0,
@@ -274,6 +275,7 @@ async def get_venue_admin_detail(
         is_operational=(venue.operational_status == "open"),
         is_verified=venue.is_verified or False,
         is_founder_venue=venue.is_founder_venue or False,
+        is_testing=venue.is_testing or False,
         address=VenueAddressInfo(
             address_display=venue.address_display,
             city=venue.city_obj.name if venue.city_obj else None,
@@ -412,6 +414,8 @@ async def update_venue(
         venue.operational_status = "open" if venue_update.is_operational else "temporarily_closed"
     if venue_update.is_founder_venue is not None:
         venue.is_founder_venue = venue_update.is_founder_venue
+    if venue_update.is_testing is not None:
+        venue.is_testing = venue_update.is_testing
         
     if venue_update.owner_id is not None:
         venue.owner_id = venue_update.owner_id

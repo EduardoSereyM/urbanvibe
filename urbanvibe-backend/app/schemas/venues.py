@@ -41,6 +41,7 @@ class VenueBase(BaseModel):
     is_verified: bool = False
     verification_status: Optional[str] = None
     is_founder_venue: Optional[bool] = False
+    is_testing: bool = False
     verified_visits_monthly: int = 0
     rating_average: float = 0.0
     review_count: int = 0
@@ -136,6 +137,7 @@ class VenueResponse(VenueBase):
                     "is_verified": data.is_verified,
                     "verification_status": data.verification_status,
                     "is_founder_venue": data.is_founder_venue,
+                    "is_testing": data.is_testing,
                     "verified_visits_monthly": data.verified_visits_monthly,
                     "rating_average": float(data.rating_average) if data.rating_average else 0.0,
                     "review_count": data.review_count or 0,

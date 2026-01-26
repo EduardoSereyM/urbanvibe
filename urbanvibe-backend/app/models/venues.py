@@ -82,6 +82,7 @@ class Venue(Base):
     is_verified = Column(Boolean, nullable=True, default=False)
     verification_status = Column(String(20), nullable=True, default="pending")  # pending, verified, rejected
     is_founder_venue = Column(Boolean, nullable=True, default=False)
+    is_testing = Column(Boolean, nullable=True, default=False)
     is_featured = Column(Boolean, nullable=True, default=False)
 
     verified_visits_all_time = Column(Integer, nullable=True, default=0)

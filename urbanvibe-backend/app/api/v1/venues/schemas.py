@@ -19,6 +19,7 @@ class VenueBase(BaseModel):
     review_count: int = 0
     verified_visits_monthly: int = 0
     is_founder_venue: bool = False
+    is_testing: bool = False
 
     # Precio
     category_id: Optional[int] = None
@@ -84,6 +85,7 @@ class VenueBase(BaseModel):
                         "payment_methods",
                         "features_config",
                         "favorites_count",  # ← AGREGADO
+                        "is_testing",       # ← AGREGADO
                     ]:
                         if hasattr(data, attr):
                             base[attr] = getattr(data, attr)

@@ -18,6 +18,11 @@ export const SelectedVenueCard = ({ venue, onClose }: SelectedVenueCardProps) =>
             onPress={() => router.push(`/(user)/venue/${venue.id}`)}
             className="absolute bottom-4 left-4 right-4 bg-[#1B1D37]/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/10"
         >
+            {venue.is_testing && (
+                <View className="absolute top-0 right-0 z-50 bg-red-500 px-2 py-1 rounded-bl-xl rounded-tr-2xl">
+                    <Text className="text-white text-[10px] font-bold">LOCAL DE PRUEBA</Text>
+                </View>
+            )}
             <View className="flex-row">
                 {/* Logo Image (Left, Larger) */}
                 <View className="mr-3">

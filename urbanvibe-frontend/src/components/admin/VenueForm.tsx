@@ -142,6 +142,7 @@ const FIELD_CONFIG = {
     rating_average: { create: false, edit: false, view: true }, // Read only
     review_count: { create: false, edit: false, view: true }, // Read only
     owner_id: { create: true, edit: true, view: true },
+    is_testing: { create: true, edit: true, view: true },
     features_config: { create: true, edit: true, view: true },
     admin_notes: { create: true, edit: true, view: true },
     company_tax_id: { create: true, edit: true, view: true },
@@ -180,6 +181,7 @@ const INITIAL_STATE = {
     is_verified: false,
     is_featured: false,
     is_founder: false,
+    is_testing: false,
     trust_tier: 'standard',
     ownership_proof_uri: '',
     company_tax_id: '',
@@ -301,6 +303,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
             if (initialData.company_tax_id) mergedData.company_tax_id = initialData.company_tax_id;
             if (initialData.category_id) mergedData.category_id = initialData.category_id;
             if (initialData.features_config) mergedData.features_config = initialData.features_config;
+            if (initialData.is_testing !== undefined) mergedData.is_testing = initialData.is_testing;
 
             // Map price and capacity fields
             if (initialData.price_tier) mergedData.price_tier = initialData.price_tier.toString();
@@ -642,6 +645,26 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         ) : (
                             renderInput('Razón Social', 'legal_name', 'Ej: Inversiones Playa SpA')
                         )}
+
+                        {/* Switch de is_testing */}
+                        <View className="flex-row items-center justify-between mb-4 bg-surface-deep/50 p-3 rounded-xl border border-surface-active">
+                            <Text className="text-foreground font-body-bold">¿Es Local de Prueba?</Text>
+                            {isViewMode ? (
+                                <View className={`px-3 py-1 rounded-full ${form.is_testing ? 'bg-red-500' : 'bg-surface-active'}`}>
+                                    <Text className={`text-xs font-bold ${form.is_testing ? 'text-white' : 'text-foreground-muted'}`}>
+                                        {form.is_testing ? 'SÍ' : 'NO'}
+                                    </Text>
+                                </View>
+                            ) : (
+                                <Switch
+                                    value={form.is_testing}
+                                    onValueChange={(val) => updateForm('is_testing', val)}
+                                    trackColor={{ false: '#767577', true: '#FF3B30' }}
+                                    thumbColor={form.is_testing ? '#ffcccc' : '#f4f3f4'}
+                                />
+                            )}
+                        </View>
+
                         {renderInput('Slogan', 'slogan', 'Una frase que te defina')}
                         {renderInput('Descripción', 'overview', 'Cuenta la historia de tu local...', false, 'default', true)}
                         {renderSelector('Categoría', form.category_label, 'Seleccionar Categoría', () => setModalVisible({ type: 'category' }), true, 'category_id')}

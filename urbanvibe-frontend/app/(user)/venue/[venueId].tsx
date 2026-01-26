@@ -298,6 +298,11 @@ export default function VenueDetailScreen() {
                 <View className="px-5 pb-6 mt-12 bg-background rounded-t-3xl border-t border-white/5 pt-4">
                     <View className="flex-row justify-between items-start mb-2">
                         <View className="flex-1">
+                            {venue.is_testing && (
+                                <View className="bg-red-500 self-start px-3 py-1 rounded-full mb-2 border border-white/10">
+                                    <Text className="text-white text-[10px] font-bold">LOCAL DE PRUEBA</Text>
+                                </View>
+                            )}
                             <Text className="text-foreground font-brand text-2xl leading-tight">
                                 {venue.name}
                             </Text>

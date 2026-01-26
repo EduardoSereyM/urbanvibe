@@ -178,6 +178,7 @@ export interface VenueAdminListItem {
   is_verified: boolean;
   operational_status?: string | null;
   is_operational: boolean;
+  is_testing: boolean;
   rating_average: number;
   total_reviews: number;
   total_verified_visits: number;

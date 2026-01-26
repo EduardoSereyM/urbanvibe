@@ -44,6 +44,7 @@ class VenueMapItem(BaseModel):
     cover_image_urls: List[str] = []
     address_display: Optional[str] = None
     is_verified: bool = False
+    is_testing: bool = False
     
 class ExploreContextResponse(BaseModel):
     profile: Optional[ProfileSummary] = None
@@ -360,7 +361,8 @@ async def get_explore_context_bff(
                  logo_url=v.logo_url,
                  cover_image_urls=cover_images, 
                  address_display=v.address_display,
-                 is_verified=v.is_verified
+                 is_verified=v.is_verified,
+                 is_testing=v.is_testing
              ))
 
     return ExploreContextResponse(

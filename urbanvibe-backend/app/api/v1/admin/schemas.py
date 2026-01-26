@@ -72,6 +72,7 @@ class VenueUpdate(BaseModel):
     is_operational: Optional[bool] = None
     is_verified: Optional[bool] = None
     is_founder_venue: Optional[bool] = None
+    is_testing: Optional[bool] = None
     address_street: Optional[str] = None
     address_number: Optional[str] = None
     city: Optional[str] = None
@@ -137,6 +138,7 @@ class VenueUpdate(BaseModel):
     verification_status: Optional[str] = "pending"
     operational_status: Optional[str] = "open"
     is_operational: bool = True
+    is_testing: bool = False
     rating_average: float = 0.0
     review_count: int = 0
     verified_visits_all_time: int = 0
@@ -157,6 +159,7 @@ class VenueAdminListItem(BaseModel):
     operational_status: Optional[str] = "open"
     is_operational: bool = True
     is_verified: bool = False
+    is_testing: bool = False
     rating_average: float = 0.0
     total_reviews: int = 0
     total_verified_visits: int = 0
@@ -189,6 +192,7 @@ class VenueAdminDetail(BaseModel):
     is_operational: bool = True
     is_verified: bool = False
     is_founder_venue: bool = False
+    is_testing: bool = False
     
     # Dirección
     address: VenueAddressInfo

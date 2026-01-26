@@ -23,6 +23,7 @@ export interface Venue {           // tipo para el local
   is_verified: boolean;
   verification_status?: 'pending' | 'verified' | 'rejected';
   is_founder_venue?: boolean;
+  is_testing?: boolean;
   verified_visits_monthly: number;
   rating_average: number;
   review_count: number;

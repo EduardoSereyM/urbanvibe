@@ -152,6 +152,15 @@ export default function AdminVenuesListScreen() {
                                     {item.is_operational ? '🟢 Operativo' : '🔴 Inactivo'}
                                 </Text>
                             </View>
+
+                            {/* Testing Status */}
+                            {item.is_testing && (
+                                <View className="px-3 py-1 rounded-full bg-red-500/20 border border-red-500/50">
+                                    <Text className="font-body-semibold text-xs text-red-400">
+                                        🛠️ PRUEBA
+                                    </Text>
+                                </View>
+                            )}
                         </View>
 
                         {/* Metrics */}
