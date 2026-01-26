@@ -43,6 +43,7 @@ export const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) 
             await client.post('/contact', {
                 email: email, // Always send email
                 message: message,
+                name: profile?.username || profile?.display_name || 'Usuario App',
             });
             Alert.alert('Éxito', 'Tu mensaje ha sido enviado. ¡Gracias por tus comentarios!');
             setMessage('');
@@ -66,63 +67,75 @@ export const ContactModal: React.FC<ContactModalProps> = ({ visible, onClose }) 
         >
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                className="flex-1 justify-end"
+                style={{ flex: 1 }}
             >
-                <View className="flex-1 bg-black/50 justify-end">
-                    <View className="bg-surface rounded-t-3xl p-6 border-t border-surface-active">
-                        <View className="flex-row justify-between items-center mb-6">
-                            <Text className="font-brand text-2xl text-foreground">
+                <View className="flex-1 bg-black/60 justify-end">
+                    <TouchableOpacity
+                        className="flex-1"
+                        onPress={onClose}
+                        activeOpacity={1}
+                    />
+                    <View className="bg-surface rounded-t-3xl border-t border-surface-active max-h-[90%]">
+                        <View className="px-6 pt-6 pb-2 border-b border-surface-active flex-row justify-between items-center">
+                            <Text className="font-brand text-xl text-foreground">
                                 Déjanos un comentario
                             </Text>
-                            <TouchableOpacity onPress={onClose}>
-                                <Ionicons name="close" size={24} color="#FA4E35" />
+                            <TouchableOpacity onPress={onClose} className="p-2 bg-surface-active rounded-full">
+                                <Ionicons name="close" size={20} color="#FA4E35" />
                             </TouchableOpacity>
                         </View>
 
-                        <Text className="font-body text-foreground-muted mb-4">
-                            Tu opinión es muy importante para nosotros. ¿Tienes alguna sugerencia o problema?
-                        </Text>
-
-                        <View className="mb-4">
-                            <Text className="font-body-bold text-foreground mb-2">Correo Electrónico</Text>
-                            <TextInput
-                                className={`bg-background text-foreground p-4 rounded-xl border border-surface-active font-body ${profile ? 'opacity-50' : ''}`}
-                                placeholder="tu@email.com"
-                                placeholderTextColor="#6B7280"
-                                value={email}
-                                onChangeText={setEmail}
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                editable={!profile}
-                            />
-                        </View>
-
-                        <View className="mb-6">
-                            <Text className="font-body-bold text-foreground mb-2">Mensaje</Text>
-                            <TextInput
-                                className="bg-background text-foreground p-4 rounded-xl border border-surface-active font-body min-h-[120px]"
-                                placeholder="Escribe tu comentario aquí..."
-                                placeholderTextColor="#6B7280"
-                                value={message}
-                                onChangeText={setMessage}
-                                multiline
-                                textAlignVertical="top"
-                            />
-                        </View>
-
-                        <TouchableOpacity
-                            onPress={handleSubmit}
-                            disabled={loading}
-                            className="bg-primary py-4 rounded-xl items-center shadow-lg mb-4"
+                        <ScrollView
+                            className="p-6"
+                            showsVerticalScrollIndicator={false}
+                            contentContainerStyle={{ paddingBottom: 40 }}
                         >
-                            {loading ? (
-                                <ActivityIndicator color="#FFF" />
-                            ) : (
-                                <Text className="text-primary-foreground font-brand text-lg">
-                                    Enviar Mensaje
-                                </Text>
-                            )}
-                        </TouchableOpacity>
+                            <Text className="font-body text-foreground-muted mb-6">
+                                Tu opinión es muy importante para nosotros. ¿Tienes alguna sugerencia o problema?
+                            </Text>
+
+                            <View className="mb-4">
+                                <Text className="font-body-bold text-foreground mb-2">Correo Electrónico</Text>
+                                <TextInput
+                                    className={`bg-background text-foreground p-4 rounded-xl border border-surface-active font-body ${profile ? 'opacity-50' : ''}`}
+                                    placeholder="tu@email.com"
+                                    placeholderTextColor="#6B7280"
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    keyboardType="email-address"
+                                    autoCapitalize="none"
+                                    editable={!profile}
+                                />
+                            </View>
+
+                            <View className="mb-6">
+                                <Text className="font-body-bold text-foreground mb-2">Mensaje</Text>
+                                <TextInput
+                                    className="bg-background text-foreground p-4 rounded-xl border border-surface-active font-body min-h-[120px]"
+                                    placeholder="Escribe tu comentario aquí..."
+                                    placeholderTextColor="#6B7280"
+                                    value={message}
+                                    onChangeText={setMessage}
+                                    multiline
+                                    textAlignVertical="top"
+                                    style={{ height: 150 }}
+                                />
+                            </View>
+
+                            <TouchableOpacity
+                                onPress={handleSubmit}
+                                disabled={loading}
+                                className="bg-primary py-4 rounded-xl items-center shadow-lg mb-4"
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#FFF" />
+                                ) : (
+                                    <Text className="text-primary-foreground font-brand text-lg">
+                                        Enviar Mensaje
+                                    </Text>
+                                )}
+                            </TouchableOpacity>
+                        </ScrollView>
                     </View>
                 </View>
             </KeyboardAvoidingView>

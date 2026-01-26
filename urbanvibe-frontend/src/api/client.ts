@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase';
 const MY_IP = '10.0.2.2';
 
 // Producción: Usa la variable de entorno (Render). Desarrollo: Fallback a localhost/emulador
+// Producción: Usa la variable de entorno (Render). Desarrollo: Fallback a localhost/emulador
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
 
 console.log('🔌 [DEBUG] Client BASE_URL configured to:', BASE_URL);

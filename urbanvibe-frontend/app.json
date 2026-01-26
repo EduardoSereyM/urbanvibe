@@ -2,7 +2,7 @@
   "expo": {
     "name": "UrbanVibe",
     "slug": "urbanvibe",
-    "version": "1.15.0",
+    "version": "1.16.0",
     "orientation": "portrait",
     "icon": "./assets/images/iconoapp512x512.png",
     "scheme": "urbanvibe",
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "com.urbanvibe.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "usesCleartextTraffic": true,
       "permissions": [
         "ACCESS_FINE_LOCATION",
