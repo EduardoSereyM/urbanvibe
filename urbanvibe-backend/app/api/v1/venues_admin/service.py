@@ -607,23 +607,42 @@ async def update_checkin_status(
     # 3. Actualizar estado
     checkin.status = new_status
     
-    # --- GAMIFICACIÓN ---
-    if new_status == 'confirmed' and checkin.points_awarded == 0:
+    # --- GAMIFICACIÓN V1.17 ---
+    # Nueva lógica: Al crear check-in = 10 pts usuario (ya otorgados)
+    #               Al confirmar = +5 pts usuario adicionales + 15 pts al local
+    if new_status == 'confirmed':
         from app.services.gamification_service import gamification_service
         
-        # Registrar el evento (esto suma puntos, evalúa retos y niveles automáticamente)
-        points_awarded = await gamification_service.register_event(
+        # 1. Bonus al usuario por confirmación (+5 pts)
+        bonus_points_user = await gamification_service.register_event(
             db=db,
             user_id=checkin.user_id,
-            event_code="CHECKIN",
+            event_code="CHECKIN_CONFIRMED_BONUS",
             venue_id=venue_id,
             source_id=checkin.id,
             details={
                 "venue_category": venue.category.name if venue.category else "General",
-                "method": "manual_validation"
+                "method": "venue_confirmation"
             }
         )
-        checkin.points_awarded = points_awarded
+        # Actualizar puntos totales del check-in (10 + 5 = 15)
+        checkin.points_awarded = (checkin.points_awarded or 0) + bonus_points_user
+        print(f"🏆 V1.17: User {checkin.user_id} awarded +{bonus_points_user} bonus pts for confirmed check-in (total: {checkin.points_awarded} pts)")
+        
+        # 2. Puntos al local por recibir check-in confirmado (+15 pts)
+        if venue.owner_id:
+            venue_points = await gamification_service.register_event(
+                db=db,
+                user_id=venue.owner_id,  # El owner del local recibe los puntos
+                event_code="VENUE_CHECKIN_RECEIVED",
+                venue_id=venue_id,
+                source_id=checkin.id,
+                details={
+                    "venue_name": venue.name,
+                    "visitor_user_id": str(checkin.user_id)
+                }
+            )
+            print(f"🏪 V1.17: Venue {venue.name} (owner: {venue.owner_id}) awarded {venue_points} pts for confirmed check-in")
     
     # --- Notificación al Usuario ---
     try:

@@ -9,6 +9,7 @@ from datetime import datetime
 from app.api import deps
 from app.models.levels import Level
 from app.models.gamification import GamificationEvent
+from app.models.gamification_advanced import Challenge, UserChallengeProgress, UserBadge, Badge, ChallengePeriodType
 
 router = APIRouter()
 
@@ -44,6 +45,31 @@ class EventResponse(BaseModel):
     description: Optional[str]
     points: int
     is_active: bool
+    
+    class Config:
+        from_attributes = True
+
+# --- Period Types ---
+class PeriodTypeCreate(BaseModel):
+    code: str
+    name: str
+    description: Optional[str] = None
+    rules: dict = {}
+    is_active: bool = True
+
+class PeriodTypeUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    rules: Optional[dict] = None
+    is_active: Optional[bool] = None
+
+class PeriodTypeResponse(BaseModel):
+    code: str
+    name: str
+    description: Optional[str]
+    rules: dict
+    is_active: bool
+    created_at: datetime
     
     class Config:
         from_attributes = True
@@ -195,6 +221,7 @@ class ChallengeCreate(BaseModel):
     target_value: int = 1
     period_start: Optional[datetime] = None
     period_end: Optional[datetime] = None
+    period_type_code: str = "all_time"
     reward_points: int = 0
     reward_badge_id: Optional[UUID] = None
     reward_promotion_id: Optional[UUID] = None
@@ -207,6 +234,7 @@ class ChallengeResponse(BaseModel):
     challenge_type: str
     target_value: int
     is_active: bool
+    period_type_code: str
     reward_points: int
     reward_promotion_id: Optional[UUID] = None
     class Config:
@@ -220,7 +248,6 @@ async def list_challenges(db: AsyncSession = Depends(deps.get_db), _: dict = Dep
 
 @router.post("/challenges", response_model=ChallengeResponse)
 async def create_challenge(item_in: ChallengeCreate, db: AsyncSession = Depends(deps.get_db), _: dict = Depends(deps.get_current_active_superuser)):
-    from app.models.gamification_advanced import Challenge
     # Check duplicate code
     if await db.scalar(select(Challenge).where(Challenge.code == item_in.code)):
         raise HTTPException(400, "Challenge code exists")
@@ -230,4 +257,148 @@ async def create_challenge(item_in: ChallengeCreate, db: AsyncSession = Depends(
     await db.commit()
     await db.refresh(new_challenge)
     return new_challenge
+
+# --- PERIOD TYPES ENDPOINTS ---
+
+@router.get("/periods", response_model=List[PeriodTypeResponse])
+async def list_periods(db: AsyncSession = Depends(deps.get_db), _: dict = Depends(deps.get_current_active_superuser)):
+    """List all period types for challenges."""
+    result = await db.execute(select(ChallengePeriodType).order_by(ChallengePeriodType.name))
+    return result.scalars().all()
+
+@router.post("/periods", response_model=PeriodTypeResponse)
+async def create_period(item_in: PeriodTypeCreate, db: AsyncSession = Depends(deps.get_db), _: dict = Depends(deps.get_current_active_superuser)):
+    """Create a new period type."""
+    if await db.get(ChallengePeriodType, item_in.code):
+        raise HTTPException(400, "Period code exists")
+        
+    new_period = ChallengePeriodType(**item_in.model_dump())
+    db.add(new_period)
+    await db.commit()
+    await db.refresh(new_period)
+    return new_period
+
+@router.patch("/periods/{code}", response_model=PeriodTypeResponse)
+async def update_period(code: str, item_in: PeriodTypeUpdate, db: AsyncSession = Depends(deps.get_db), _: dict = Depends(deps.get_current_active_superuser)):
+    """Update a period type."""
+    period = await db.get(ChallengePeriodType, code)
+    if not period:
+        raise HTTPException(404, "Period not found")
+        
+    update_data = item_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(period, field, value)
+        
+    await db.commit()
+    await db.refresh(period)
+    return period
+
+@router.delete("/periods/{code}")
+async def delete_period(code: str, db: AsyncSession = Depends(deps.get_db), _: dict = Depends(deps.get_current_active_superuser)):
+    """Delete a period type."""
+    period = await db.get(ChallengePeriodType, code)
+    if not period:
+        raise HTTPException(404, "Period not found")
+    
+    await db.delete(period)
+    await db.commit()
+    return {"message": "Period deleted"}
+
+# --- BADGES CRUD (PATCH/DELETE) ---
+
+class BadgeUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    icon_url: Optional[str] = None
+    category: Optional[str] = None
+
+@router.patch("/badges/{badge_id}", response_model=BadgeResponse)
+async def update_badge(
+    badge_id: UUID,
+    badge_in: BadgeUpdate,
+    db: AsyncSession = Depends(deps.get_db),
+    _: dict = Depends(deps.get_current_active_superuser)
+):
+    """Update a badge."""
+    from app.models.gamification_advanced import Badge
+    badge = await db.get(Badge, badge_id)
+    if not badge:
+        raise HTTPException(404, "Badge not found")
+    
+    update_data = badge_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(badge, field, value)
+    
+    await db.commit()
+    await db.refresh(badge)
+    return badge
+
+@router.delete("/badges/{badge_id}")
+async def delete_badge(
+    badge_id: UUID,
+    db: AsyncSession = Depends(deps.get_db),
+    _: dict = Depends(deps.get_current_active_superuser)
+):
+    """Delete a badge (Warning: may affect users with this badge)."""
+    from app.models.gamification_advanced import Badge
+    badge = await db.get(Badge, badge_id)
+    if not badge:
+        raise HTTPException(404, "Badge not found")
+    
+    await db.delete(badge)
+    await db.commit()
+    return {"message": "Badge deleted"}
+
+# --- CHALLENGES CRUD (PATCH/DELETE) ---
+
+class ChallengeUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    challenge_type: Optional[str] = None
+    target_value: Optional[int] = None
+    is_active: Optional[bool] = None
+    reward_points: Optional[int] = None
+    reward_badge_id: Optional[UUID] = None
+    reward_promotion_id: Optional[UUID] = None
+    filters: Optional[dict] = None
+    period_start: Optional[datetime] = None
+    period_end: Optional[datetime] = None
+    period_type_code: Optional[str] = None
+
+@router.patch("/challenges/{challenge_id}", response_model=ChallengeResponse)
+async def update_challenge(
+    challenge_id: UUID,
+    challenge_in: ChallengeUpdate,
+    db: AsyncSession = Depends(deps.get_db),
+    _: dict = Depends(deps.get_current_active_superuser)
+):
+    """Update a challenge."""
+    from app.models.gamification_advanced import Challenge
+    challenge = await db.get(Challenge, challenge_id)
+    if not challenge:
+        raise HTTPException(404, "Challenge not found")
+    
+    update_data = challenge_in.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(challenge, field, value)
+    
+    await db.commit()
+    await db.refresh(challenge)
+    return challenge
+
+@router.delete("/challenges/{challenge_id}")
+async def delete_challenge(
+    challenge_id: UUID,
+    db: AsyncSession = Depends(deps.get_db),
+    _: dict = Depends(deps.get_current_active_superuser)
+):
+    """Delete a challenge (Warning: may affect user progress)."""
+    from app.models.gamification_advanced import Challenge
+    challenge = await db.get(Challenge, challenge_id)
+    if not challenge:
+        raise HTTPException(404, "Challenge not found")
+    
+    await db.delete(challenge)
+    await db.commit()
+    return {"message": "Challenge deleted"}
 

@@ -1,26 +1,38 @@
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from typing import Optional
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from app.core.config import settings
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from app.api import deps
 from app.models.profiles import Profile
+import os
 
 router = APIRouter()
 
+# Relaxed validation to avoid 422 errors hindering debugging
 class ContactRequest(BaseModel):
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None 
+    name: Optional[str] = None
     message: str
 
 # Email Configuration
-SMTP_SERVER = "mail.urbanvibe.cl"
-SMTP_PORT = 465
-SMTP_USERNAME = "contacto@urbanvibe.cl"
-SMTP_PASSWORD = "Abb1582esm.ComUV"
+try:
+    SMTP_SERVER = os.getenv("SMTP_SERVER", "mail.urbanvibe.cl")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+    SMTP_USERNAME = os.getenv("SMTP_USERNAME", "contacto@urbanvibe.cl")
+    SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "Abb1582esm.ComUV")
+except:
+    # Safe defaults
+    SMTP_SERVER = "mail.urbanvibe.cl"
+    SMTP_PORT = 465
+    SMTP_USERNAME = "contacto@urbanvibe.cl"
+    SMTP_PASSWORD = "Abb1582esm.ComUV"
 
 def send_email_task(subject: str, body: str, to_email: str):
+    print(f"🔄 [BACKGROUND] Starting email task: {subject}", flush=True)
     try:
         msg = MIMEMultipart()
         msg['From'] = SMTP_USERNAME
@@ -29,41 +41,72 @@ def send_email_task(subject: str, body: str, to_email: str):
 
         msg.attach(MIMEText(body, 'plain'))
 
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
-            server.login(SMTP_USERNAME, SMTP_PASSWORD)
-            server.send_message(msg)
+        print(f"🔄 [BACKGROUND] Connecting to {SMTP_SERVER}:{SMTP_PORT}...", flush=True)
+        
+        if SMTP_PORT == 465:
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT) as server:
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                print("🔄 [BACKGROUND] Sending message (SSL)...", flush=True)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_USERNAME, SMTP_PASSWORD)
+                print(f"🔄 [BACKGROUND] Sending message (TLS/STARTTLS)...", flush=True)
+                server.send_message(msg)
+                
+        print("✅ [BACKGROUND] Email sent successfully!", flush=True)
             
     except Exception as e:
-        print(f"Error sending email: {e}")
-        # In a real app, we might want to log this to a file or monitoring service
+        print(f"❌ [BACKGROUND] Failed to send email: {e}", flush=True)
 
 @router.post("/")
 async def send_contact_email(
     request: ContactRequest,
     background_tasks: BackgroundTasks,
+    db: AsyncSession = Depends(deps.get_db),
     current_user: Optional[Profile] = Depends(deps.get_current_user_optional)
 ):
-    """
-    Send a contact email.
-    If user is logged in, use their email.
-    If not, require email in request.
-    """
+    print(f"🔥� [CONTACT] Request received. Data: name='{request.name}' email='{request.email}'", flush=True)
     
-    sender_email = None
-    sender_name = "Anonymous"
+    sender_email = request.email or (current_user.email if current_user else None)
+    sender_name = "Guest"
+
+    if sender_email:
+        sender_email = sender_email.lower().strip()
+        print(f"🔍 [CONTACT] Looking up user with email: '{sender_email}'", flush=True)
+
+    # 1. Try DB Lookup by Email (Highest Priority & Source of Truth)
+    if sender_email:
+        try:
+            # CORRECT ASYNC QUERY
+            query = select(Profile).where(Profile.email == sender_email)
+            result = await db.execute(query)
+            profile_db = result.scalars().first()
+            
+            if profile_db:
+                print(f"✅ [CONTACT] Profile FOUND. Username: '{profile_db.username}'", flush=True)
+                if profile_db.username:
+                    sender_name = profile_db.username
+                else:
+                    print("⚠️ [CONTACT] Profile found but username is empty.", flush=True)
+            else:
+                print(f"❌ [CONTACT] Profile NOT FOUND for email: {sender_email}", flush=True)
+                if request.name:
+                    sender_name = request.name
+                    
+        except Exception as e:
+            print(f"💥 [CONTACT] CRITICAL DB ERROR: {e}", flush=True)
+            if request.name:
+                sender_name = request.name
     
-    if request.email:
-        sender_email = request.email
-        if current_user:
-            sender_name = current_user.display_name or current_user.username or "User"
-        else:
-            sender_name = "Guest"
-    elif current_user:
-        # Fallback if for some reason request.email is missing but user is logged in
-        # Note: Profile model might not have email, so we rely on request.email mostly
-        sender_email = getattr(current_user, 'email', None)
-        sender_name = current_user.display_name or current_user.username or "User"
+    # 2. Fallback to Frontend Name
+    elif request.name:
+        sender_name = request.name
+        print(f"ℹ️ [CONTACT] No email, using frontend name: {sender_name}", flush=True)
         
+    print(f"🏁 [CONTACT] FINAL Sender Name: {sender_name}", flush=True)
+
     if not sender_email:
         raise HTTPException(status_code=400, detail="Email is required")
         
@@ -77,7 +120,11 @@ async def send_contact_email(
     {request.message}
     """
     
-    # Send email in background to avoid blocking the request
-    background_tasks.add_task(send_email_task, subject, body, SMTP_USERNAME)
+    try:
+        # Send ONLY to admin support
+        background_tasks.add_task(send_email_task, subject, body, SMTP_USERNAME)
+    except Exception as e:
+        print(f"❌ [CONTACT] Error scheduling task: {e}", flush=True)
+        raise HTTPException(status_code=500, detail="Error interno")
     
     return {"message": "Mensaje enviado correctamente"}

@@ -24,6 +24,17 @@ class UserBadge(Base):
     badge_id = Column(UUID(as_uuid=True), ForeignKey("public.badges.id"), primary_key=True)
     awarded_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class ChallengePeriodType(Base):
+    __tablename__ = "challenge_period_types"
+    __table_args__ = {"schema": "public"}
+
+    code = Column(String, primary_key=True) # weekend, monthly, etc.
+    name = Column(String, nullable=False)
+    description = Column(String)
+    rules = Column(JSONB, default={}) # {"type": "weekly", "days": [4,5,6]}
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
 class Challenge(Base):
     __tablename__ = "challenges"
     __table_args__ = {"schema": "public"}
@@ -39,6 +50,7 @@ class Challenge(Base):
     
     period_start = Column(DateTime(timezone=True), nullable=True)
     period_end = Column(DateTime(timezone=True), nullable=True)
+    period_type_code = Column(String, ForeignKey("public.challenge_period_types.code"), default="all_time")
     is_active = Column(Boolean, default=True)
     
     reward_points = Column(Integer, default=0)
@@ -56,6 +68,7 @@ class UserChallengeProgress(Base):
     challenge_id = Column(UUID(as_uuid=True), ForeignKey("public.challenges.id"))
     
     current_value = Column(Integer, default=0)
+    window_id = Column(String, default="forever") # e.g. "2024-W12-weekend"
     is_completed = Column(Boolean, default=False)
     completed_at = Column(DateTime(timezone=True), nullable=True)
     last_updated_at = Column(DateTime(timezone=True), server_default=func.now())

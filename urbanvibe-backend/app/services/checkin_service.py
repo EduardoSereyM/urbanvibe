@@ -73,20 +73,21 @@ class CheckinService:
             await db.refresh(new_checkin)
             
             # --- GAMIFICATION ---
-            # Award points for Check-in
-            if new_checkin.status == 'confirmed':
-                 points_awarded = await gamification_service.register_event(
-                    db=db,
-                    user_id=user_id,
-                    event_code="CHECKIN", 
-                    venue_id=venue_id,
-                    source_id=new_checkin.id,
-                    details={
-                        "venue_category": venue.category.name if venue.category else "General",
-                        "method": "geofence"
-                    }
-                )
-                 print(f"🏆 Gamification: User {user_id} awarded {points_awarded} pts for Check-in {venue_id}")
+            # Award 10 points immediately to user for Check-in (regardless of confirmation status)
+            # Nueva lógica V1.17: 10 pts inmediato, +5 pts al confirmar
+            points_awarded = await gamification_service.register_event(
+                db=db,
+                user_id=user_id,
+                event_code="CHECKIN", 
+                venue_id=venue_id,
+                source_id=new_checkin.id,
+                details={
+                    "venue_category": venue.category.name if venue.category else "General",
+                    "method": "qr_scan",
+                    "status": new_checkin.status
+                }
+            )
+            print(f"🏆 Gamification: User {user_id} awarded {points_awarded} pts for Check-in at {venue.name} (status: {new_checkin.status})")
 
             # --- Notificaciones ---
             from app.services.notifications import notification_service
