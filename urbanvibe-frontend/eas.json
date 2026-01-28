@@ -1,8 +1,8 @@
 {
     "cli": {
-        "version": ">= 12.5.1",
-        "appDir": "."
+        "version": ">= 12.5.1"
     },
+    "appDir": ".",
     "build": {
         "development": {
             "developmentClient": true,
