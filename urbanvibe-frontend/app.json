@@ -2,6 +2,7 @@
   "expo": {
     "name": "UrbanVibe",
     "slug": "urbanvibe",
+    "owner": "abborgia",
     "version": "1.17.0",
     "orientation": "portrait",
     "icon": "./assets/images/iconoapp512x512.png",
