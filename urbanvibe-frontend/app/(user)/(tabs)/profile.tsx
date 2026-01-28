@@ -609,12 +609,17 @@ export default function ProfileScreen() {
               )}
 
               {profile.favorite_cuisines && profile.favorite_cuisines.length > 0 && (
-                <View className="flex-row flex-wrap gap-1 justify-center mb-3 px-4">
-                  {profile.favorite_cuisines.map(c => (
-                    <View key={c} className="bg-surface border border-surface-active px-2 py-0.5 rounded-full">
-                      <Text className="text-foreground-muted text-[10px]">{c}</Text>
-                    </View>
-                  ))}
+                <View className="mb-3 px-4">
+                  <Text className="text-foreground-muted text-[10px] uppercase tracking-wider text-center mb-2 font-body-bold">
+                    Preferencias de Tipo de Local
+                  </Text>
+                  <View className="flex-row flex-wrap gap-1 justify-center">
+                    {profile.favorite_cuisines.map(c => (
+                      <View key={c} className="bg-surface border border-surface-active px-2 py-0.5 rounded-full">
+                        <Text className="text-foreground-muted text-[10px]">{c}</Text>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               )}
 

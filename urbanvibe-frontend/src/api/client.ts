@@ -4,15 +4,15 @@ import axios from 'axios';
 import { Platform } from 'react-native';
 import { supabase } from '../lib/supabase';
 
-// ⚠️ Ajusta esta IP si cambia tu red local
-const MY_IP = '10.0.2.2';
-
-// Producción: Usa la variable de entorno (Render). Desarrollo: Fallback a localhost/emulador
-// Producción: Usa la variable de entorno (Render). Desarrollo: Fallback a localhost/emulador
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.0.2.2:8000';
+// ⚠️ IMPORTANTE: El fallback DEBE ser la URL de producción (Render)
+// Las variables de entorno pueden no embeberse correctamente en builds de release.
+// Si necesitas conectar a tu backend local, cambia temporalmente esta línea.
+const PRODUCTION_URL = 'https://backenduv.onrender.com';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || PRODUCTION_URL;
 
 console.log('🔌 [DEBUG] Client BASE_URL configured to:', BASE_URL);
 console.log('📱 [DEBUG] Platform OS:', Platform.OS);
+console.log('🌐 [DEBUG] EXPO_PUBLIC_API_URL env:', process.env.EXPO_PUBLIC_API_URL || '(not set, using fallback)');
 
 export const client = axios.create({
   baseURL: `${BASE_URL}/api/v1`,

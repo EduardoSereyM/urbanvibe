@@ -1,7 +1,7 @@
 
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Modal, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdminGamificationService, Badge, Challenge } from '../../../src/api/AdminGamificationService';
 
@@ -200,8 +200,15 @@ export default function ChallengesScreen() {
                                 <Text className="mr-2">🎁</Text>
                                 <Text className="text-primary font-bold">{item.reward_points} XP</Text>
                                 {item.reward_badge_id && (
-                                    <View className="ml-2 bg-purple-500/20 px-2 py-0.5 rounded">
-                                        <Text className="text-purple-400 text-xs">+ {getBadgeName(item.reward_badge_id)}</Text>
+                                    <View className="ml-2 bg-purple-500/20 px-2 py-1 rounded-lg border border-purple-500/30 flex-row items-center">
+                                        <View className="w-5 h-5 rounded-full bg-[#1B1D37] items-center justify-center mr-1 overflow-hidden">
+                                            {badges.find(b => b.id === item.reward_badge_id)?.icon_url?.startsWith('http') ? (
+                                                <Image source={{ uri: badges.find(b => b.id === item.reward_badge_id)?.icon_url }} className="w-4 h-4" resizeMode="contain" />
+                                            ) : (
+                                                <Text className="text-[10px]">{badges.find(b => b.id === item.reward_badge_id)?.icon_url || '🏅'}</Text>
+                                            )}
+                                        </View>
+                                        <Text className="text-purple-400 text-xs font-bold">{getBadgeName(item.reward_badge_id)}</Text>
                                     </View>
                                 )}
                             </View>
@@ -336,10 +343,19 @@ export default function ChallengesScreen() {
                                         <TouchableOpacity
                                             key={badge.id}
                                             onPress={() => setRewardBadgeId(badge.id)}
-                                            className={`mr-2 px-4 py-2 rounded-lg border flex-row items-center ${rewardBadgeId === badge.id ? 'bg-purple-500/30 border-purple-500' : 'bg-transparent border-border'}`}
+                                            className={`mr-3 px-3 py-2 rounded-xl border flex-row items-center ${rewardBadgeId === badge.id ? 'bg-purple-500/30 border-purple-500' : 'bg-[#252A4A] border-white/10'}`}
                                         >
-                                            <Text className="mr-1">{badge.icon_url || '🏅'}</Text>
-                                            <Text className={rewardBadgeId === badge.id ? 'text-purple-400 font-bold' : 'text-foreground-muted'}>{badge.name}</Text>
+                                            <View className="w-8 h-8 rounded-full bg-[#1B1D37] items-center justify-center mr-2 overflow-hidden border border-white/5">
+                                                {badge.icon_url?.startsWith('http') ? (
+                                                    <Image source={{ uri: badge.icon_url }} className="w-6 h-6" resizeMode="contain" />
+                                                ) : (
+                                                    <Text className="text-lg">{badge.icon_url || '🏅'}</Text>
+                                                )}
+                                            </View>
+                                            <View>
+                                                <Text className={`text-xs font-bold ${rewardBadgeId === badge.id ? 'text-purple-400' : 'text-foreground'}`}>{badge.name}</Text>
+                                                <Text className="text-[9px] text-foreground-muted">{badge.category}</Text>
+                                            </View>
                                         </TouchableOpacity>
                                     ))}
                                 </ScrollView>

@@ -51,7 +51,7 @@ module.exports = {
 
         // 4. BRANDING (COLORES DE MARCA)
         primary: {
-          // bg-primary / text-primary → Naranja AventuraUV (#FA4E35)
+          // bg-primary / text-primary → Naranja AventuraUV ( #FA4E35 )
           DEFAULT: "hsl(var(--aventura-uv) / <alpha-value>)",
 
           // text-primary-foreground → texto sobre un botón naranja
@@ -59,7 +59,7 @@ module.exports = {
           foreground: "hsl(var(--aventura-fg-uv) / <alpha-value>)",
         },
         secondary: {
-          // bg-secondary / text-secondary → Morado MisticaUV (#6313A1)
+          // bg-secondary / text-secondary → Morado MisticaUV ( #6313A1)
           // Este es el color morado - #6313A1 sexto
           DEFAULT: "hsl(var(--mistica-uv) / <alpha-value>)",
         },
@@ -67,13 +67,13 @@ module.exports = {
         // 5. ACENTOS NEÓN
         // Úsalos con moderación (detalles, iconos, tags)
         accent: {
-          // text-accent-cyber / bg-accent-cyber → Cyan (#00E0FF)
+          // text-accent-cyber / bg-accent-cyber → Cyan ( #00E0FF)
           cyber: "hsl(var(--cyber-uv) / <alpha-value>)",
 
-          // text-accent-turquesa / bg-accent-turquesa → Turquesa (#00F5D4)
+          // text-accent-turquesa / bg-accent-turquesa → Turquesa ( #00F5D4)
           turquesa: "hsl(var(--turquesa-uv) / <alpha-value>)",
 
-          // text-accent-fucsia / bg-accent-fucsia → Magenta (#FF00CC)
+          // text-accent-fucsia / bg-accent-fucsia → Magenta ( #FF00CC)
           fucsia: "hsl(var(--fucsia-uv) / <alpha-value>)",
         },
 

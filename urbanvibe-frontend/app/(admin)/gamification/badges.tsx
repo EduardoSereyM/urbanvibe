@@ -1,12 +1,13 @@
 
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Image, Modal, ScrollView, Text, TextInput, TouchableOpacity, View, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { AdminGamificationService, Badge } from '../../../src/api/AdminGamificationService';
+import { SupabaseImagePicker } from '../../../src/components/ui/SupabaseImagePicker';
 
 export default function BadgesScreen() {
     const router = useRouter();
@@ -124,8 +125,12 @@ export default function BadgesScreen() {
                     <View className="mr-4 relative">
                         {/* Glow */}
                         <View className="absolute inset-0 bg-purple-500 blur-md opacity-30 rounded-full" />
-                        <View className="w-14 h-14 rounded-full bg-[#1B1D37] border border-purple-500/30 items-center justify-center">
-                            <Text className="text-2xl">{item.icon_url?.startsWith('http') ? '🏅' : (item.icon_url || '🏅')}</Text>
+                        <View className="w-14 h-14 rounded-full bg-[#1B1D37] border border-purple-500/30 items-center justify-center overflow-hidden">
+                            {item.icon_url?.startsWith('http') ? (
+                                <Image source={{ uri: item.icon_url }} className="w-12 h-12" resizeMode="contain" />
+                            ) : (
+                                <Text className="text-2xl">{item.icon_url || '🏅'}</Text>
+                            )}
                         </View>
                     </View>
 
@@ -249,16 +254,13 @@ export default function BadgesScreen() {
                                     />
                                 </View>
 
-                                <View>
-                                    <Text className="text-gray-400 mb-2 font-bold text-xs uppercase tracking-wider">Icono (Emoji)</Text>
-                                    <TextInput
-                                        className="bg-[#252A4A] p-4 rounded-xl text-white border border-white/10 font-body text-3xl text-center"
-                                        placeholder="🏅"
-                                        placeholderTextColor="#6B7280"
-                                        value={iconUrl}
-                                        onChangeText={setIconUrl}
-                                    />
-                                </View>
+                                <SupabaseImagePicker
+                                    label="Icono de la Insignia"
+                                    bucketName="urbanvibe_media"
+                                    defaultFolder="badges"
+                                    currentImageUrl={iconUrl}
+                                    onImageUploaded={(url) => setIconUrl(url)}
+                                />
 
                                 <View>
                                     <Text className="text-gray-400 mb-2 font-bold text-xs uppercase tracking-wider">Categoría</Text>

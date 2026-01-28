@@ -73,9 +73,6 @@ export default function WelcomeScreen() {
                         <Text className="text-[50px] font-brand text-foreground">urban</Text>
                         <Text className="text-[50px] font-brand text-primary ml-1">Vibe</Text>
                     </View>
-                    <View className="bg-sky-300/100 px-3 py-1 rounded-full mt-2 border border-white/30">
-                        <Text className="text-black text-xs font-bold tracking-widest uppercase">Version Beta v1.2</Text>
-                    </View>
 
                     {/* Botón principal */}
                     <TouchableOpacity
@@ -86,16 +83,22 @@ export default function WelcomeScreen() {
                         </Text>
                     </TouchableOpacity>
 
+
+
                     {/* B2B Link - Soy Local */}
-                    <TouchableOpacity onPress={goToVenueOwner} className="mt-16">
-                        <Text className="text-accent-cyber text-sm font-body-bold">
-                            🏪 Business Access
+                    <TouchableOpacity onPress={goToVenueOwner} className="mt-12 border border-accent-cyber px-5 py-3 rounded-full">
+                        <Text className="text-primary text-sm font-body-bold">
+                            🏪 Only for Business Access
                         </Text>
                     </TouchableOpacity>
                 </View>
 
                 {/* Footer */}
                 <View className="items-center pb-4">
+                    {/* Versión App */}
+                    <View className="mb-6 px-3 py-1 rounded-md mt-2 border border-warning">
+                        <Text className="text-foreground text-xs font-bold tracking-widest uppercase">Version Beta v1.17.0</Text>
+                    </View>
                     <Text className="text-foreground-muted text-xs font-body">
                         urban
                         <Text className="text-primary font-body-bold">Vibe</Text> ® Chile - 2025

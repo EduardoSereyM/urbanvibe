@@ -107,6 +107,11 @@ export const AdminGamificationService = {
     updateEvent: async (eventCode: string, data: Partial<GamificationEvent>): Promise<GamificationEvent> => {
         const response = await client.patch(`/admin/gamification/events/${eventCode}`, data);
         return response.data;
+    },
+
+    createEvent: async (data: GamificationEvent): Promise<GamificationEvent> => {
+        const response = await client.post('/admin/gamification/events', data);
+        return response.data;
     }
 };
 

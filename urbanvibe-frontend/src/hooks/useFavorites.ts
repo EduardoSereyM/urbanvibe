@@ -40,13 +40,21 @@ export function useToggleFavoriteVenue() {
         onMutate: async ({ venueId, isFavorite }) => {
             // Cancel any outgoing refetches
             await queryClient.cancelQueries({ queryKey: ['favorites', 'me'] });
+            await queryClient.cancelQueries({ queryKey: ['favorites-hydrated'] });
             await queryClient.cancelQueries({ queryKey: ['venue', venueId] });
+            await queryClient.cancelQueries({ queryKey: ['venue-details', venueId] });
+            await queryClient.cancelQueries({ queryKey: ['explore-context'] });
+            await queryClient.cancelQueries({ queryKey: ['venues-list-bff'] });
 
-            // Snapshot the previous value
+            // Snapshot the previous values
             const previousFavorites = queryClient.getQueryData<string[]>(['favorites', 'me']);
+            const previousHydratedFavorites = queryClient.getQueryData<VenueFavoriteItem[]>(['favorites-hydrated']);
             const previousVenue = queryClient.getQueryData<Venue>(['venue', venueId]);
+            const previousVenueDetails = queryClient.getQueryData<any>(['venue-details', venueId]);
+            const previousExploreContext = queryClient.getQueryData<any>(['explore-context']);
+            const previousVenuesList = queryClient.getQueriesData<any[]>({ queryKey: ['venues-list-bff'] });
 
-            // Optimistically update Favorites List
+            // 1. Optimistically update Favorites List (UUIDs only)
             queryClient.setQueryData<string[]>(['favorites', 'me'], (old) => {
                 const currentList = old || [];
                 if (isFavorite) {
@@ -56,34 +64,88 @@ export function useToggleFavoriteVenue() {
                 }
             });
 
-            // Optimistically update Venue Count
+            // 2. Optimistically update Hydrated Favorites (the ones in the Favorites tab)
+            if (isFavorite && previousHydratedFavorites) {
+                queryClient.setQueryData<VenueFavoriteItem[]>(['favorites-hydrated'], (old) => {
+                    return (old || []).filter(item => item.id !== venueId);
+                });
+            }
+
+            // 3. Optimistically update Explore Context (Map Venues)
+            if (previousExploreContext) {
+                queryClient.setQueryData<any>(['explore-context'], (old: any) => {
+                    if (!old || !old.map_venues) return old;
+                    return {
+                        ...old,
+                        map_venues: old.map_venues.map((v: any) =>
+                            v.id === venueId ? { ...v, is_favorite: !isFavorite } : v
+                        )
+                    };
+                });
+            }
+
+            // 4. Optimistically update Venues List (BFF List Screen)
+            queryClient.setQueriesData<any[]>({ queryKey: ['venues-list-bff'] }, (old: any[] | undefined) => {
+                if (!old) return old;
+                return old.map((v: any) =>
+                    v.id === venueId ? { ...v, is_favorite: !isFavorite } : v
+                );
+            });
+
+            // 5. Optimistically update Venue Count / Details
             if (previousVenue) {
                 queryClient.setQueryData<Venue>(['venue', venueId], (old) => {
                     if (!old) return old;
                     const newCount = (old.favorites_count || 0) + (isFavorite ? -1 : 1);
+                    return { ...old, favorites_count: Math.max(0, newCount) };
+                });
+            }
+
+            if (previousVenueDetails) {
+                queryClient.setQueryData<any>(['venue-details', venueId], (old: any) => {
+                    if (!old) return old;
                     return {
                         ...old,
-                        favorites_count: Math.max(0, newCount)
+                        is_favorite: !isFavorite,
+                        venue: old.venue ? {
+                            ...old.venue,
+                            favorites_count: Math.max(0, (old.venue.favorites_count || 0) + (isFavorite ? -1 : 1))
+                        } : old.venue
                     };
                 });
             }
 
             // Return context
-            return { previousFavorites, previousVenue };
+            return {
+                previousFavorites,
+                previousHydratedFavorites,
+                previousVenue,
+                previousVenueDetails,
+                previousExploreContext,
+                previousVenuesList
+            };
         },
-        onError: (err, newTodo, context) => {
+        onError: (err, variables, context: any) => {
             // Rollback
-            if (context?.previousFavorites) {
-                queryClient.setQueryData(['favorites', 'me'], context.previousFavorites);
-            }
-            if (context?.previousVenue) {
-                queryClient.setQueryData(['venue', newTodo.venueId], context.previousVenue);
+            if (context?.previousFavorites) queryClient.setQueryData(['favorites', 'me'], context.previousFavorites);
+            if (context?.previousHydratedFavorites) queryClient.setQueryData(['favorites-hydrated'], context.previousHydratedFavorites);
+            if (context?.previousVenue) queryClient.setQueryData(['venue', variables.venueId], context.previousVenue);
+            if (context?.previousVenueDetails) queryClient.setQueryData(['venue-details', variables.venueId], context.previousVenueDetails);
+            if (context?.previousExploreContext) queryClient.setQueryData(['explore-context'], context.previousExploreContext);
+            if (context?.previousVenuesList) {
+                context.previousVenuesList.forEach(([queryKey, data]: [any, any]) => {
+                    queryClient.setQueryData(queryKey, data);
+                });
             }
         },
         onSettled: (data, error, variables) => {
-            // Always refetch
+            // Always refetch to sync with server
             queryClient.invalidateQueries({ queryKey: ['favorites', 'me'] });
+            queryClient.invalidateQueries({ queryKey: ['favorites-hydrated'] });
             queryClient.invalidateQueries({ queryKey: ['venue', variables.venueId] });
+            queryClient.invalidateQueries({ queryKey: ['venue-details', variables.venueId] });
+            queryClient.invalidateQueries({ queryKey: ['explore-context'] });
+            queryClient.invalidateQueries({ queryKey: ['venues-list-bff'] });
         },
     });
 }

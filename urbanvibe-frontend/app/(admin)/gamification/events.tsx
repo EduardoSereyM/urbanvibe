@@ -24,6 +24,8 @@ export default function EventsScreen() {
 
     // Form State
     const [editingEvent, setEditingEvent] = useState<GamificationEvent | null>(null);
+    const [eventCode, setEventCode] = useState('');
+    const [targetType, setTargetType] = useState('user');
     const [points, setPoints] = useState('');
     const [isActive, setIsActive] = useState(true);
     const [description, setDescription] = useState('');
@@ -45,21 +47,29 @@ export default function EventsScreen() {
     }, []);
 
     const handleSave = async () => {
-        if (!editingEvent) return;
+        if (!eventCode && !editingEvent) return;
 
         try {
-            await AdminGamificationService.updateEvent(editingEvent.event_code, {
-                points: parseInt(points),
+            const data = {
+                points: parseInt(points || '0'),
                 is_active: isActive,
-                description
-            });
+                description,
+                target_type: targetType,
+                event_code: eventCode
+            };
+
+            if (editingEvent) {
+                await AdminGamificationService.updateEvent(editingEvent.event_code, data);
+            } else {
+                await AdminGamificationService.createEvent(data as GamificationEvent);
+            }
 
             setModalVisible(false);
             resetForm();
             fetchEvents();
         } catch (error) {
             console.error("Error saving event:", error);
-            alert("Error al guardar regla");
+            alert("Error al guardar regla. Verifica que el código no exista.");
         }
     };
 
@@ -76,6 +86,8 @@ export default function EventsScreen() {
 
     const openEdit = (event: GamificationEvent) => {
         setEditingEvent(event);
+        setEventCode(event.event_code);
+        setTargetType(event.target_type);
         setPoints(event.points.toString());
         setIsActive(event.is_active);
         setDescription(event.description || '');
@@ -84,6 +96,8 @@ export default function EventsScreen() {
 
     const resetForm = () => {
         setEditingEvent(null);
+        setEventCode('');
+        setTargetType('user');
         setPoints('');
         setIsActive(true);
         setDescription('');
@@ -96,14 +110,22 @@ export default function EventsScreen() {
     return (
         <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
             {/* Header */}
-            <View className="px-6 py-4 border-b border-border flex-row items-center">
-                <TouchableOpacity onPress={() => router.back()} className="mr-4">
-                    <Text className="text-2xl text-foreground">←</Text>
-                </TouchableOpacity>
-                <View className="flex-1">
-                    <Text className="font-heading text-xl text-foreground">Reglas de Puntos</Text>
-                    <Text className="text-sm text-foreground-muted">Configura cuántos puntos otorga cada acción</Text>
+            <View className="px-6 py-4 border-b border-border flex-row items-center justify-between">
+                <View className="flex-row items-center">
+                    <TouchableOpacity onPress={() => router.back()} className="mr-4">
+                        <Text className="text-2xl text-foreground">←</Text>
+                    </TouchableOpacity>
+                    <View>
+                        <Text className="font-heading text-xl text-foreground">Reglas de Puntos</Text>
+                        <Text className="text-sm text-foreground-muted">XP por cada acción</Text>
+                    </View>
                 </View>
+                <TouchableOpacity
+                    onPress={() => { resetForm(); setModalVisible(true); }}
+                    className="bg-primary px-4 py-2 rounded-lg"
+                >
+                    <Text className="text-primary-foreground font-bold">+ Crear</Text>
+                </TouchableOpacity>
             </View>
 
             {/* Info Banner */}
@@ -186,10 +208,9 @@ export default function EventsScreen() {
                     <View className="bg-surface p-6 rounded-t-3xl border-t border-border">
                         <View className="flex-row justify-between items-center mb-6">
                             <View>
-                                <Text className="text-xl font-bold text-foreground">Editar Regla</Text>
-                                {editingEvent && (
-                                    <Text className="text-sm text-foreground-muted">{editingEvent.event_code}</Text>
-                                )}
+                                <Text className="text-xl font-bold text-foreground">
+                                    {editingEvent ? 'Editar Regla' : 'Nueva Regla'}
+                                </Text>
                             </View>
                             <TouchableOpacity onPress={() => setModalVisible(false)}>
                                 <Text className="text-foreground text-lg">✕</Text>
@@ -197,15 +218,47 @@ export default function EventsScreen() {
                         </View>
 
                         <ScrollView>
-                            {editingEvent && (
-                                <View className="bg-background p-4 rounded-xl mb-4 flex-row items-center">
-                                    <Text className="text-3xl mr-3">{getEventInfo(editingEvent.event_code).icon}</Text>
-                                    <View>
-                                        <Text className="text-lg font-bold text-foreground">{getEventInfo(editingEvent.event_code).name}</Text>
-                                        <Text className="text-xs text-foreground-muted">Target: {editingEvent.target_type}</Text>
-                                    </View>
+                            <View className="mb-4">
+                                <Text className="text-foreground mb-2">Código del Evento (Slug)</Text>
+                                <TextInput
+                                    className="bg-background p-3 rounded-lg text-foreground border border-border"
+                                    placeholder="EJ: CHECKIN_NUEVO"
+                                    placeholderTextColor="#666"
+                                    value={eventCode}
+                                    onChangeText={setEventCode}
+                                    autoCapitalize="characters"
+                                    editable={!editingEvent}
+                                />
+                                {editingEvent && (
+                                    <Text className="text-xs text-foreground-muted mt-1">El código no se puede modificar una vez creado</Text>
+                                )}
+                            </View>
+
+                            <View className="mb-4">
+                                <Text className="text-foreground mb-2">Beneficiario (Target)</Text>
+                                <View className="flex-row">
+                                    <TouchableOpacity
+                                        onPress={() => setTargetType('user')}
+                                        className={`flex-1 mr-2 p-3 rounded-lg border items-center ${targetType === 'user' ? 'bg-primary border-primary' : 'bg-background border-border'}`}
+                                    >
+                                        <Text className={targetType === 'user' ? 'text-primary-foreground font-bold' : 'text-foreground-muted'}>Usuario (Win XP)</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        onPress={() => setTargetType('venue')}
+                                        className={`flex-1 ml-2 p-3 rounded-lg border items-center ${targetType === 'venue' ? 'bg-primary border-primary' : 'bg-background border-border'}`}
+                                    >
+                                        <Text className={targetType === 'venue' ? 'text-primary-foreground font-bold' : 'text-foreground-muted'}>Local (Win Stats)</Text>
+                                    </TouchableOpacity>
                                 </View>
-                            )}
+                            </View>
+
+                            <View className="bg-background p-4 rounded-xl mb-4 flex-row items-center border border-border/30">
+                                <Text className="text-3xl mr-3">{getEventInfo(eventCode).icon}</Text>
+                                <View>
+                                    <Text className="text-lg font-bold text-foreground">{getEventInfo(eventCode).name}</Text>
+                                    <Text className="text-xs text-foreground-muted">Vista previa de regla</Text>
+                                </View>
+                            </View>
 
                             <View className="mb-4">
                                 <Text className="text-foreground mb-2">Puntos Otorgados</Text>

@@ -212,22 +212,22 @@ export default function VenueDetailScreen() {
             <View className="absolute top-12 left-4 right-4 flex-row justify-between z-50">
                 <TouchableOpacity
                     onPress={handleBack}
-                    className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
+                    className="w-10 h-10 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
                 >
-                    <Ionicons name="arrow-back" size={24} color="white" />
+                    <Ionicons name="arrow-back" size={24} color="#00E0FF" />
                 </TouchableOpacity>
                 <View className="flex-row gap-3">
                     <TouchableOpacity
                         onPress={() => setShowInvitationModal(true)}
-                        className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
+                        className="w-10 h-10 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
                     >
-                        <Ionicons name="people-outline" size={24} color="white" />
+                        <Ionicons name="people-outline" size={24} color="#FFC000" />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => setShowReviewModal(true)}
-                        className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
+                        className="w-10 h-10 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
                     >
-                        <Ionicons name="star-outline" size={24} color="white" />
+                        <Ionicons name="star-outline" size={24} color="#06D6A0" />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => {
@@ -240,7 +240,7 @@ export default function VenueDetailScreen() {
                                 }
                             });
                         }}
-                        className="w-10 h-10 rounded-full bg-black/30 items-center justify-center backdrop-blur-md"
+                        className="w-10 h-10 rounded-full bg-black/50 items-center justify-center backdrop-blur-md"
                     >
                         <Ionicons name={isFavorite ? "heart" : "heart-outline"} size={24} color={isFavorite ? "#EF4444" : "white"} />
                     </TouchableOpacity>
@@ -420,7 +420,10 @@ export default function VenueDetailScreen() {
                         <TabButton
                             label="Recompensas"
                             active={activeTab === 'rewards'}
-                            onPress={() => setActiveTab('rewards')}
+                            onPress={() => router.push({
+                                pathname: '/(user)/venue/rewards',
+                                params: { venueId: venue.id, venueName: venue.name }
+                            })}
                         />
                     </ScrollView>
                 </View>

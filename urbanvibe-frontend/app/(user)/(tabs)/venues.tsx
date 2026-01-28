@@ -39,9 +39,7 @@ export default function VenuesListScreen() {
                             </Text>
                             <TouchableOpacity
                                 onPress={() => {
-                                    toggleFavorite({ venueId: item.id, isFavorite: item.is_favorite }, {
-                                        onSuccess: () => refetch() // Simple brute-force refresh for now
-                                    });
+                                    toggleFavorite({ venueId: item.id, isFavorite: item.is_favorite });
                                 }}
                                 className="p-1"
                             >

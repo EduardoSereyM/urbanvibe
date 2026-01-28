@@ -10,7 +10,7 @@
   :root {
     /* --- BASE: LA NOCHE (FONDO GLOBAL) --- */
     /* Usado por bg-background */
-    /* Este es el color Azul Oscuro - #1B1D37 principal */
+    /* Este es el color Azul Oscuro -  #1B1D37 principal */
     --la-noche-uv: 236 34% 16%;
 
     /* --- SUPERFICIES (JERARQUÍA 3D) --- */
@@ -27,7 +27,7 @@
     --surface-active-uv: 211 87% 25%;
 
     /* --- MARCA PRINCIPAL --- */
-    /* Naranja AventuraUV (#FA4E35) → bg-primary / text-primary */
+    /* Naranja AventuraUV ( #FA4E35) → bg-primary / text-primary */
     /* Este es el color naranja (ROJO UV) - #FA4E35 quinto */
     --aventura-uv: 9 95% 59%;
 
