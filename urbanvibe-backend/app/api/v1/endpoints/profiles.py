@@ -180,7 +180,7 @@ async def read_me(
         website=row.get("website") if row else None,
         bio=row.get("bio") if row else None,
         
-        # Location IDs
+        # Location IDs (Explicit Mapping for persistence fix)
         city_id=row.get("city_id") if row else None,
         region_id=row.get("region_id") if row else None,
         country_code=row.get("country_code") if row else None,
