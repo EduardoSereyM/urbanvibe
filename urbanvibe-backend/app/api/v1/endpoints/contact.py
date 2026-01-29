@@ -60,7 +60,7 @@ def send_email_task(subject: str, body: str, to_email: str):
     except Exception as e:
         print(f"❌ [BACKGROUND] Failed to send email: {e}", flush=True)
 
-@router.post("/")
+@router.post("")
 async def send_contact_email(
     request: ContactRequest,
     background_tasks: BackgroundTasks,
