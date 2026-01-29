@@ -61,6 +61,29 @@ async def check_tax_id_unique(
     return {"is_unique": True, "message": "Disponible"}
 
 
+# --- Endpoint para verificar unicidad del Nombre ---
+@router.get("/check-name-availability/{name}")
+async def check_name_unique(
+    name: str,
+    db: Annotated[AsyncSession, Depends(deps.get_db)],
+    current_venue_id: Optional[UUID] = Query(None, description="Excluir este venue de la búsqueda (para edición)"),
+):
+    """
+    Verifica si un nombre de local ya está registrado (Case Insensitive).
+    Retorna { "is_unique": bool, "message": str }
+    """
+    query = select(Venue).where(Venue.name.ilike(name))
+    if current_venue_id:
+        query = query.where(Venue.id != current_venue_id)
+    
+    result = await db.execute(query)
+    existing = result.scalars().first()
+    
+    if existing:
+        return {"is_unique": False, "message": "Ya existe un local con este nombre"}
+    return {"is_unique": True, "message": "Disponible"}
+
+
 def get_is_super_admin(
     token: Annotated[str, Depends(oauth2_scheme)]
 ) -> bool:
