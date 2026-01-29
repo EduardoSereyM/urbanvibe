@@ -180,6 +180,11 @@ async def read_me(
         website=row.get("website") if row else None,
         bio=row.get("bio") if row else None,
         
+        # Location IDs
+        city_id=row.get("city_id") if row else None,
+        region_id=row.get("region_id") if row else None,
+        country_code=row.get("country_code") if row else None,
+        
         # Counters
         reviews_count=reviews_count,
         photos_count=photos_count,
@@ -262,6 +267,11 @@ async def update_me(
         referral_code=row.get("referral_code"),
         website=row.get("website"),
         bio=row.get("bio"),
+        
+        # Location IDs
+        city_id=row.get("city_id"),
+        region_id=row.get("region_id"),
+        country_code=row.get("country_code"),
         
         # Counters (Simple return 0 or logic reuse? Reuse logic preferred but complex here. Let's return basics)
         # Ideally we should extract the "Get Profile" logic to a service function.

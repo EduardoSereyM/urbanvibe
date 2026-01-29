@@ -3,6 +3,7 @@ from uuid import UUID
 from datetime import datetime
 
 from sqlalchemy import select, and_, or_, text, func
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from geoalchemy2.functions import ST_SetSRID, ST_MakePoint
 from fastapi import HTTPException, status
@@ -106,11 +107,11 @@ async def get_user_venues(
     # ✅ Si llegamos aquí, el usuario SÍ tiene permisos
     if is_super_admin:
         # SUPER_ADMIN puede ver todos los venues
-        stmt = select(Venue).where(Venue.deleted_at.is_(None))
+        stmt = select(Venue).options(selectinload(Venue.city_obj)).where(Venue.deleted_at.is_(None))
     else:
         # Usuario normal: solo venues donde es owner
         # TODO: Agregar lógica de venue_team cuando esté disponible
-        stmt = select(Venue).where(
+        stmt = select(Venue).options(selectinload(Venue.city_obj)).where(
             and_(
                 Venue.owner_id == user_id,
                 Venue.deleted_at.is_(None)
@@ -138,7 +139,7 @@ async def get_user_venues(
             type=None,  # Campo no existe en el modelo actual
             parent_id=None,  # Campo no existe en el modelo actual
             name=venue.name,
-            city=venue.city,
+            city=venue.city_obj.name if venue.city_obj else None,
             operational_status=venue.operational_status,
             is_founder_venue=venue.is_founder_venue or False,
             verification_status=venue.verification_status or "pending",
@@ -228,9 +229,13 @@ async def create_founder_venue(
     # Agregar datos de dirección si vienen
     if venue_data.address:
         new_venue.address_display = venue_data.address.address_display
-        new_venue.city = venue_data.address.city
-        new_venue.region_state = venue_data.address.region_state
-        new_venue.country_code = venue_data.address.country_code
+        if venue_data.address.region_state: new_venue.region_state = venue_data.address.region_state
+        if venue_data.address.country_code: new_venue.country_code = venue_data.address.country_code
+    
+    # Location IDs (Modern Flat)
+    if venue_data.city_id: new_venue.city_id = venue_data.city_id
+    if venue_data.region_id: new_venue.region_id = venue_data.region_id
+    if venue_data.country_code: new_venue.country_code = venue_data.country_code
     
     db.add(new_venue)
     await db.commit()
@@ -278,12 +283,18 @@ async def update_venue_b2b(
     if venue_data.latitude and venue_data.longitude:
          venue.location = f"POINT({venue_data.longitude} {venue_data.latitude})"
 
-    # Address
+    # Address (Legacy Nested)
     if venue_data.address:
         venue.address_display = venue_data.address.address_display
-        venue.city = venue_data.address.city
-        venue.region_state = venue_data.address.region_state
-        venue.country_code = venue_data.address.country_code
+        if venue_data.address.region_state: venue.region_state = venue_data.address.region_state
+        if venue_data.address.country_code: venue.country_code = venue_data.address.country_code
+        # Legacy city string support (optional)
+        # if venue_data.address.city: venue.city = venue_data.address.city 
+
+    # Location IDs (Modern Flat)
+    if venue_data.city_id: venue.city_id = venue_data.city_id
+    if venue_data.region_id: venue.region_id = venue_data.region_id
+    if venue_data.country_code: venue.country_code = venue_data.country_code
 
     # Media
     if venue_data.logo_url: venue.logo_url = venue_data.logo_url
@@ -356,7 +367,7 @@ async def get_venue_b2b_detail(
     Valida autorización del usuario.
     """
     # Buscar el venue
-    stmt = select(Venue).where(
+    stmt = select(Venue).options(selectinload(Venue.city_obj)).where(
         and_(
             Venue.id == venue_id,
             Venue.deleted_at.is_(None)
@@ -428,10 +439,10 @@ async def _map_to_b2b_detail(venue: Venue) -> VenueB2BDetail:
             
     # Parse address
     address = None
-    if venue.address_display or venue.city:
+    if venue.address_display or venue.city_obj:
         address = VenueAddress(
             address_display=venue.address_display,
-            city=venue.city,
+            city=venue.city_obj.name if venue.city_obj else None,
             region_state=venue.region_state,
             country_code=venue.country_code
         )

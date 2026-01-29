@@ -113,8 +113,12 @@ export default function AdminVenuesListScreen() {
                         {/* Location */}
                         <View className="flex-row items-center mb-3">
                             <Text className="text-2xl mr-2">📍</Text>
-                            <Text className="font-body text-foreground-muted flex-1">
-                                {item.address_display}, {item.city}
+                            <Text className="font-body text-foreground-muted flex-1" numberOfLines={2}>
+                                {item.address_display
+                                    ? (item.city && !item.address_display.includes(item.city)
+                                        ? `${item.address_display}, ${item.city}`
+                                        : item.address_display)
+                                    : (item.city || 'Sin dirección registrada')}
                             </Text>
                         </View>
 

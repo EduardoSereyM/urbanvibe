@@ -284,6 +284,9 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                 mergedData.latitude = initialData.address.latitude?.toString() ?? initialData.latitude?.toString() ?? '';
                 mergedData.longitude = initialData.address.longitude?.toString() ?? initialData.longitude?.toString() ?? '';
                 mergedData.directions_tip = initialData.directions_tip ?? initialData.address.directions_tip ?? '';
+                // IDs para LocationSelector
+                mergedData.region_id = initialData.address.region_id ?? initialData.region_id ?? null;
+                mergedData.city_id = initialData.address.city_id ?? initialData.city_id ?? null;
             }
 
             if (initialData.metrics) {
@@ -385,8 +388,10 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
     };
 
     const handleGeocode = async () => {
-        if (!form.address_street || !form.address_number || !form.city) {
-            Alert.alert('Faltan datos', 'Ingresa calle, número y ciudad para validar la ubicación.');
+        // Validar que tengamos los datos necesarios (city puede venir como nombre o city_id)
+        const hasCity = form.city || form.city_id;
+        if (!form.address_street || !form.address_number || !hasCity) {
+            Alert.alert('Faltan datos', 'Ingresa calle, número y selecciona una comuna para validar la ubicación.');
             return;
         }
 
@@ -668,22 +673,6 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         {renderInput('Slogan', 'slogan', 'Una frase que te defina')}
                         {renderInput('Descripción', 'overview', 'Cuenta la historia de tu local...', false, 'default', true)}
                         {renderSelector('Categoría', form.category_label, 'Seleccionar Categoría', () => setModalVisible({ type: 'category' }), true, 'category_id')}
-
-
-
-                        {renderInput('Dirección (Calle)', 'address_street', 'Av. Providencia')}
-                        {renderInput('Número', 'address_number', '1234')}
-                        {renderInput('Datos Extra', 'directions_tip', 'Local 5, 2do Piso')}
-
-                        <TouchableOpacity onPress={handleGeocode} className="bg-surface-active p-3 rounded-xl border border-accent-cyber/20 items-center mt-2 mb-4">
-                            {geocodingLoading ? <ActivityIndicator size="small" /> : <Text className="text-accent-cyber font-body-bold">📍 Validar Ubicación en Mapa</Text>}
-                        </TouchableOpacity>
-
-                        {/* Hidden/Readonly Coords */}
-                        <View className="flex-row gap-2">
-                            {renderInput('Latitud', 'latitude', '0.0', false)}
-                            {renderInput('Longitud', 'longitude', '0.0', false)}
-                        </View>
 
                     </Card>
 

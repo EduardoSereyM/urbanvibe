@@ -23,13 +23,19 @@ export default function LoginScreen() {
 
     // Auto-detectar sesión al cargar (ej: al volver del callback de Google)
     React.useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
+        let isMounted = true;
+
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session && isMounted) {
                 console.log('⚡ Sesión detectada al montar Login. Ejecutando post-login...');
                 setLoading(true);
                 handlePostLogin();
             }
-        });
+        };
+
+        checkSession();
+        return () => { isMounted = false; };
     }, []);
 
 

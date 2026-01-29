@@ -32,7 +32,7 @@
       },
       "adaptiveIcon": {
         "backgroundColor": "#1B1D37",
-        "foregroundImage": "./assets/images/iconoapp512x512.png"
+        "foregroundImage": "./assets/images/adaptive-foreground.png"
       },
       "googleServicesFile": "./google-services.json",
       "edgeToEdgeEnabled": true

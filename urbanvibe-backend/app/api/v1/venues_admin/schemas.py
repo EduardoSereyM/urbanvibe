@@ -64,6 +64,11 @@ class VenueCreate(BaseModel):
     google_place_id: Optional[str] = None
     directions_tip: Optional[str] = None
     
+    # Hierarchical Location (IDs)
+    city_id: Optional[int] = None
+    region_id: Optional[int] = None
+    country_code: Optional[str] = None
+    
     # SEO
     seo_title: Optional[str] = None
     seo_description: Optional[str] = None

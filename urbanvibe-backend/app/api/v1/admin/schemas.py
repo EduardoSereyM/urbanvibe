@@ -42,6 +42,9 @@ class VenueAddressInfo(BaseModel):
     address_street: Optional[str] = None
     address_number: Optional[str] = None
     directions_tip: Optional[str] = None
+    # IDs for LocationSelector
+    region_id: Optional[int] = None
+    city_id: Optional[int] = None
 
 
 class VenueContactInfo(BaseModel):
@@ -76,7 +79,9 @@ class VenueUpdate(BaseModel):
     address_street: Optional[str] = None
     address_number: Optional[str] = None
     city: Optional[str] = None
+    city_id: Optional[int] = None
     region_state: Optional[str] = None
+    region_id: Optional[int] = None
     country_code: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None
@@ -343,9 +348,9 @@ class UserAdminDetail(BaseModel):
     is_influencer: bool = False
     is_active: bool = True # Computed from auth
     
-    # Role
+    # Role (NOT NULL en BD - siempre debe estar definido al crear usuario)
     role_id: int
-    role_name: Optional[str] = None # Enriched
+    role_name: Optional[str] = None # Enriched from app_roles table
     
     # Gamification & Stats
     reputation_score: int = 0
@@ -363,11 +368,19 @@ class UserAdminDetail(BaseModel):
     
     # Location
     current_city: Optional[str] = None
+    country_code: Optional[str] = None
+    region_id: Optional[int] = None
+    city_id: Optional[int] = None
     
     # Referral
     referral_code: Optional[str] = None
     referral_source: Optional[str] = None
     referred_by_user_id: Optional[UUID] = None
+    
+    # Audit
+    last_activity_at: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     
     # Nested Info
     roles: List[UserRoleInfo] = [] # Legacy array for backward compatibility

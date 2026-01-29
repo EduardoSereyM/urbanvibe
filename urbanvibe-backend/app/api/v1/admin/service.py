@@ -12,6 +12,7 @@ from shapely.geometry import Point
 from app.models.venues import Venue
 from app.models.locations import City
 from app.models.profiles import Profile
+from app.models.checkins import Checkin
 from app.api.v1.admin.schemas import (
     VenueOwnerInfo,
     VenueTeamMember,
@@ -147,22 +148,33 @@ async def get_all_venues(
         limit = 100
     
     # Base query
-    query = select(Venue).options(selectinload(Venue.city_obj)).where(Venue.deleted_at.is_(None))
+    # Subquery for verified visits count
+    visits_subquery = (
+        select(func.count(Checkin.id))
+        .where(and_(Checkin.venue_id == Venue.id, Checkin.status == 'confirmed'))
+        .scalar_subquery()
+    )
+    
+    query = select(Venue, visits_subquery.label("verified_visits_count")).options(selectinload(Venue.city_obj)).where(Venue.deleted_at.is_(None))
     
     # Filtro de búsqueda
     if search:
         search_pattern = f"%{search.lower()}%"
+        query = query.join(Venue.city_obj, isouter=True) # Join for search fallback if needed, or straightforward
+        # Search in City name too?
         query = query.where(
             or_(
                 func.lower(Venue.name).like(search_pattern),
                 func.lower(Venue.legal_name).like(search_pattern),
-                func.lower(Venue.address_display).like(search_pattern)
+                func.lower(Venue.address_display).like(search_pattern),
+                # func.lower(City.name).like(search_pattern) # If we joined properly
             )
         )
     
     # Filtro por ciudad
     if city:
-        query = query.where(func.lower(Venue.city) == city.lower())
+        # Must join to filter by city name
+        query = query.join(Venue.city_obj).where(func.lower(City.name) == city.lower())
     
     # Filtro por operational_status
     if operational_status:
@@ -195,11 +207,12 @@ async def get_all_venues(
     
     # Ejecutar query
     result = await db.execute(query)
-    venues = result.scalars().all()
+    rows = result.all()
+    # venues = result.scalars().all() # Now we have tuples (Venue, count)
     
     # Mapear a response
     venue_items = []
-    for venue in venues:
+    for venue, visits_count in rows:
         # Obtener info del owner
         owner_info = None
         if venue.owner_id:
@@ -218,7 +231,7 @@ async def get_all_venues(
             is_testing=venue.is_testing or False,
             rating_average=venue.rating_average or 0.0,
             review_count=venue.review_count or 0,
-            verified_visits_all_time=venue.verified_visits_all_time or 0,
+            total_verified_visits=visits_count or 0,
             created_at=venue.created_at or datetime.now(),
             owner=owner_info
         ))
@@ -239,8 +252,14 @@ async def get_venue_admin_detail(
     Obtiene detalle completo de un venue para admin.
     Solo para SUPER_ADMIN.
     """
-    # Buscar venue
-    stmt = select(Venue).where(
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Buscar venue con relaciones cargadas
+    stmt = select(Venue).options(
+        selectinload(Venue.region),
+        selectinload(Venue.city_obj)
+    ).where(
         and_(
             Venue.id == venue_id,
             Venue.deleted_at.is_(None)
@@ -254,6 +273,11 @@ async def get_venue_admin_detail(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Venue no encontrado"
         )
+    
+    # Debug log (usando print para visibilidad)
+    print(f"🔍 [ADMIN] get_venue_detail llamado para venue_id: {venue_id}")
+    print(f"🔍 [ADMIN] Venue {venue.name}: region_id={venue.region_id}, city_id={venue.city_id}")
+    print(f"🔍 [ADMIN] Venue {venue.name}: region_obj={venue.region}, city_obj={venue.city_obj}")
     
     # Obtener equipo
     team = await get_venue_team(db, venue_id)
@@ -279,13 +303,15 @@ async def get_venue_admin_detail(
         address=VenueAddressInfo(
             address_display=venue.address_display,
             city=venue.city_obj.name if venue.city_obj else None,
-            region_state=venue.region_state,
+            region_state=getattr(venue.region, 'name', None) or venue.region_state,
             country_code=venue.country_code,
             latitude=venue.latitude,
             longitude=venue.longitude,
             address_street=venue.address_street,
             address_number=venue.address_number,
-            directions_tip=venue.directions_tip
+            directions_tip=venue.directions_tip,
+            region_id=venue.region_id,
+            city_id=venue.city_id
         ),
         contact_phone=venue.contact_phone if hasattr(venue, 'contact_phone') else None,
         contact_email=venue.contact_email if hasattr(venue, 'contact_email') else None,
@@ -431,8 +457,10 @@ async def update_venue(
     # Actualizar dirección
     # Actualizar dirección (campos planos)
     if venue_update.address_display is not None: venue.address_display = venue_update.address_display
-    if venue_update.city is not None: venue.city = venue_update.city
+    # if venue_update.city is not None: venue.city = venue_update.city # Removing legacy assignment
+    if venue_update.city_id is not None: venue.city_id = venue_update.city_id
     if venue_update.region_state is not None: venue.region_state = venue_update.region_state
+    if venue_update.region_id is not None: venue.region_id = venue_update.region_id
     if venue_update.country_code is not None: venue.country_code = venue_update.country_code
     if venue_update.address_street is not None: venue.address_street = venue_update.address_street
     if venue_update.address_number is not None: venue.address_number = venue_update.address_number
@@ -844,7 +872,7 @@ async def get_user_detail(
                 p.reputation_score,
                 p.points_current,
                 p.points_lifetime,
-                u.created_at,
+                u.created_at as auth_created_at,
                 u.last_sign_in_at,
                 u.email_confirmed_at,
                 u.phone,
@@ -873,7 +901,13 @@ async def get_user_detail(
                 p.referral_code,
                 p.referral_source,
                 p.referred_by_user_id,
-                CASE WHEN u.banned_until IS NULL THEN true ELSE false END as is_active
+                CASE WHEN u.banned_until IS NULL THEN true ELSE false END as is_active,
+                p.country_code,
+                p.region_id,
+                p.city_id,
+                p.last_activity_at,
+                p.created_at as profile_created_at,
+                p.updated_at as profile_updated_at
             FROM public.profiles p
             JOIN auth.users u ON p.id = u.id
             LEFT JOIN public.app_roles ar ON p.role_id = ar.id
@@ -930,7 +964,7 @@ async def get_user_detail(
         is_influencer=row[21] or False,
         is_active=row[35],
         
-        # Role
+        # Role (NOT NULL en BD, siempre tiene valor)
         role_id=row[22],
         role_name=row[23],
         
@@ -947,11 +981,19 @@ async def get_user_detail(
         
         # Location
         current_city=row[31],
+        country_code=row[36],
+        region_id=row[37],
+        city_id=row[38],
         
         # Referral
         referral_code=row[32],
         referral_source=row[33],
         referred_by_user_id=row[34],
+        
+        # Audit
+        last_activity_at=row[39],
+        created_at=row[40],
+        updated_at=row[41],
         
         roles=roles_list,
         auth_info=UserAuthInfo(

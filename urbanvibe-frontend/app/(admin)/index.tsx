@@ -13,8 +13,16 @@ export default function AdminMenuScreen() {
 
     const handleLogout = async () => {
         setShowExitModal(false);
-        await supabase.auth.signOut();
-        router.replace('/(auth)/login');
+        try {
+            await supabase.auth.signOut();
+            // Pequeña espera para asegurar limpieza de storage
+            setTimeout(() => {
+                router.replace('/(auth)/login');
+            }, 100);
+        } catch (error) {
+            console.error('Error during logout:', error);
+            router.replace('/(auth)/login');
+        }
     };
 
     const handleExit = () => {

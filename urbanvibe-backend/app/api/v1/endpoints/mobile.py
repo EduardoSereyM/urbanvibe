@@ -3,6 +3,8 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlalchemy import select
 
 from app.api import deps
@@ -453,10 +455,19 @@ async def get_venue_detail_bff(
     Full Venue detail for Mobile app.
     Includes Venue info, favorite status, and active promotions.
     """
+
     from app.api.v1.venues.service import get_venue_by_id
     
     # 1. Fetch Venue
-    venue = await get_venue_by_id(db, venue_id)
+    # Manually fetch to ensure eager loads for BFF
+    stmt = select(Venue).options(
+        selectinload(Venue.city_obj), 
+        selectinload(Venue.category)
+    ).where(Venue.id == venue_id)
+    
+    result = await db.execute(stmt)
+    venue = result.scalar_one_or_none()
+
     if not venue:
         from fastapi import HTTPException
         raise HTTPException(status_code=404, detail="Venue not found")

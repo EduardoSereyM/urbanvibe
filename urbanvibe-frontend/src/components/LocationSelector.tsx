@@ -68,7 +68,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={countries?.length > 0 ? "Selecciona País" : "Cargando..."} value="" color="#989EB3" />
+                        <Picker.Item label={countries?.length > 0 ? "Selecciona País" : "Cargando..."} value="" color="#666666" />
                         {countries?.map((c) => (
                             <Picker.Item key={c.code} label={c.name} value={c.code} color="#1F2937" />
                         ))}
@@ -87,7 +87,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Región..."} value={0} color="#989EB3" />
+                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Región..."} value={0} color="#666666" />
                         {regions?.map((r) => (
                             <Picker.Item key={r.id} label={r.name} value={r.id} color="#1F2937" />
                         ))}
@@ -106,7 +106,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Comuna..."} value={0} color="#989EB3" />
+                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Comuna..."} value={0} color="#666666" />
                         {cities?.map((c) => (
                             <Picker.Item key={c.id} label={c.name} value={c.id} color="#1F2937" />
                         ))}

@@ -185,7 +185,28 @@ export default function AdminUserDetailScreen() {
                         <InputField label="RUT / ID Nacional" value={formData.national_id} onChange={(t: string) => setFormData({ ...formData, national_id: t })} />
                         <InputField label="Bio" value={formData.bio} onChange={(t: string) => setFormData({ ...formData, bio: t })} multiline />
                         <InputField label="Website" value={formData.website} onChange={(t: string) => setFormData({ ...formData, website: t })} />
-                        <InputField label="Avatar URL" value={formData.avatar_url} onChange={(t: string) => setFormData({ ...formData, avatar_url: t })} />
+                        {/* Avatar con Preview Visual */}
+                        <View className="mb-4">
+                            <Text className="text-foreground-muted mb-2 text-sm uppercase tracking-wide">Avatar</Text>
+                            <View className="flex-row items-center bg-surface p-4 rounded-xl border border-border">
+                                <View className="w-16 h-16 bg-surface-highlight rounded-full items-center justify-center overflow-hidden border-2 border-primary mr-4">
+                                    {formData.avatar_url ? (
+                                        <Image source={{ uri: formData.avatar_url }} className="w-full h-full" />
+                                    ) : (
+                                        <Text className="text-2xl">👤</Text>
+                                    )}
+                                </View>
+                                <View className="flex-1">
+                                    <TextInput
+                                        value={formData.avatar_url}
+                                        onChangeText={(t: string) => setFormData({ ...formData, avatar_url: t })}
+                                        placeholder="https://ejemplo.com/avatar.jpg"
+                                        placeholderTextColor="#666"
+                                        className="bg-surface-highlight p-3 rounded-lg text-foreground text-sm border border-border"
+                                    />
+                                </View>
+                            </View>
+                        </View>
 
                         <SectionHeader title="Estado y Roles" />
                         <View className="mb-4">
@@ -211,6 +232,31 @@ export default function AdminUserDetailScreen() {
                             </View>
                         </View>
 
+                        {/* Estado del Usuario - Selector Visual */}
+                        <View className="mb-4">
+                            <Text className="text-foreground-muted mb-2 text-sm uppercase tracking-wide">Estado de Cuenta</Text>
+                            <View className="flex-row flex-wrap gap-2">
+                                {[
+                                    { value: 'active', label: 'Activo', icon: '✓', color: 'bg-green-500' },
+                                    { value: 'inactive', label: 'Inactivo', icon: '⏸', color: 'bg-yellow-500' },
+                                    { value: 'suspended', label: 'Suspendido', icon: '⛔', color: 'bg-red-500' }
+                                ].map((status) => (
+                                    <TouchableOpacity
+                                        key={status.value}
+                                        onPress={() => setFormData({ ...formData, status: status.value })}
+                                        className={`px-4 py-2 rounded-lg border flex-row items-center ${formData.status === status.value ? `${status.color} border-transparent` : 'bg-surface border-border'}`}
+                                    >
+                                        <Text className={formData.status === status.value ? 'text-white mr-2' : 'text-foreground-muted mr-2'}>
+                                            {status.icon}
+                                        </Text>
+                                        <Text className={formData.status === status.value ? 'text-white font-bold' : 'text-foreground-muted'}>
+                                            {status.label}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
                         <ToggleField
                             label="Cuenta Activa (Login permitido)"
                             value={formData.is_active}
@@ -226,7 +272,6 @@ export default function AdminUserDetailScreen() {
                             value={formData.is_influencer}
                             onChange={(val: boolean) => setFormData({ ...formData, is_influencer: val })}
                         />
-                        <InputField label="Estado (Texto)" value={formData.status} onChange={(t: string) => setFormData({ ...formData, status: t })} />
 
                         <SectionHeader title="Gamification & Stats" />
                         <View className="flex-row space-x-4">

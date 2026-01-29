@@ -20,3 +20,10 @@ build/
 .expo/
 .vscode/
 coverage/
+
+# Build artifacts
+*.apk
+*.aab
+*.ap_
+UrbanVibe-v*.apk
+UrbanVibe-v*.aab

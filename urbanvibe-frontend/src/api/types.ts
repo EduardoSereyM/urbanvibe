@@ -410,11 +410,19 @@ export interface AdminUserDetailResponse {
 
   // Location
   current_city?: string | null;
+  country_code?: string | null;
+  region_id?: number | null;
+  city_id?: number | null;
 
   // Referral
   referral_code?: string | null;
   referral_source?: string | null;
   referred_by_user_id?: string | null;
+
+  // Audit
+  last_activity_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 
   roles: Array<{
     role_name: string;

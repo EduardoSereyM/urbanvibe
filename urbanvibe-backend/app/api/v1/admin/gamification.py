@@ -39,6 +39,13 @@ class EventUpdate(BaseModel):
     is_active: Optional[bool] = None
     description: Optional[str] = None
 
+class EventCreate(BaseModel):
+    event_code: str
+    target_type: str = "user"
+    points: int = 0
+    is_active: bool = True
+    description: Optional[str] = None
+
 class EventResponse(BaseModel):
     event_code: str
     target_type: str
@@ -174,6 +181,25 @@ async def update_event(
     await db.commit()
     await db.refresh(event)
     return event
+
+@router.post("/events", response_model=EventResponse)
+async def create_event(
+    event_in: EventCreate,
+    db: AsyncSession = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_active_superuser),
+):
+    """Create a new point rule event."""
+    # Check duplicate
+    stmt = select(GamificationEvent).where(GamificationEvent.event_code == event_in.event_code)
+    existing = await db.scalar(stmt)
+    if existing:
+        raise HTTPException(400, "Event code already exists")
+    
+    new_event = GamificationEvent(**event_in.model_dump())
+    db.add(new_event)
+    await db.commit()
+    await db.refresh(new_event)
+    return new_event
 
 # --- BADGES ---
 
