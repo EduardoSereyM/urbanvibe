@@ -417,8 +417,57 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
     const handleSubmit = async () => {
         if (!onSubmit) return;
 
-        // Validation
-        // Validation
+        // === VALIDACIONES DE CAMPOS OBLIGATORIOS ===
+        const requiredFields = [
+            { key: 'name', label: 'Nombre del local' },
+            { key: 'legal_name', label: 'Razón social' },
+            { key: 'slogan', label: 'Slogan' },
+            { key: 'overview', label: 'Descripción' },
+            { key: 'category_id', label: 'Categoría' },
+            { key: 'contact_phone', label: 'Teléfono' },
+            { key: 'contact_email', label: 'Email de contacto' },
+            { key: 'address_street', label: 'Calle' },
+            { key: 'address_number', label: 'Número' },
+            { key: 'company_tax_id', label: 'ID Tributario / RUT del Local' },
+        ];
+
+        for (const field of requiredFields) {
+            if (!form[field.key] || form[field.key].toString().trim() === '') {
+                Alert.alert('Campo obligatorio', `Debes completar: ${field.label}`);
+                return;
+            }
+        }
+
+        // Validar imágenes obligatorias
+        if (!form.logo_uri) {
+            Alert.alert('Campo obligatorio', 'Debes subir el Logo del local');
+            return;
+        }
+        if (!form.cover_image_uris || form.cover_image_uris.length === 0) {
+            Alert.alert('Campo obligatorio', 'Debes subir al menos una imagen de Portada');
+            return;
+        }
+        if (!form.menu_image_uris || form.menu_image_uris.length === 0) {
+            Alert.alert('Campo obligatorio', 'Debes subir al menos una imagen de la Carta/Menú');
+            return;
+        }
+
+        // Validar métodos de pago (al menos 1)
+        const hasPaymentMethod = form.payment_methods?.cash ||
+            form.payment_methods?.card ||
+            form.payment_methods?.transfer;
+        if (!hasPaymentMethod) {
+            Alert.alert('Campo obligatorio', 'Debes seleccionar al menos un método de pago');
+            return;
+        }
+
+        // Validar capacidad
+        if (!form.capacity_estimate || form.capacity_estimate === '') {
+            Alert.alert('Campo obligatorio', 'Debes indicar la capacidad total del local');
+            return;
+        }
+
+        // === VALIDACIONES DE UBICACIÓN ===
         if (!form.country_code) {
             Alert.alert('Falta Ubicación', 'Debes seleccionar un País.');
             return;
@@ -510,7 +559,12 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
 
             await onSubmit(payload);
         } catch (error: any) {
-            Alert.alert('Error', error.message || 'Error al guardar');
+            console.error('Submission error:', error);
+            const msg = error.response?.data?.detail
+                || error.response?.data?.message
+                || error.message
+                || 'Error al guardar';
+            Alert.alert('Error', typeof msg === 'string' ? msg : JSON.stringify(msg));
         } finally {
             setLoading(false);
         }
@@ -648,30 +702,34 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                                 </View>
                             </View>
                         ) : (
-                            renderInput('Razón Social', 'legal_name', 'Ej: Inversiones Playa SpA')
+                            renderInput('Razón Social', 'legal_name', 'Ej: Inversiones Playa SpA', true)
                         )}
 
-                        {/* Switch de is_testing */}
-                        <View className="flex-row items-center justify-between mb-4 bg-surface-deep/50 p-3 rounded-xl border border-surface-active">
-                            <Text className="text-foreground font-body-bold">¿Es Local de Prueba?</Text>
-                            {isViewMode ? (
-                                <View className={`px-3 py-1 rounded-full ${form.is_testing ? 'bg-red-500' : 'bg-surface-active'}`}>
-                                    <Text className={`text-xs font-bold ${form.is_testing ? 'text-white' : 'text-foreground-muted'}`}>
-                                        {form.is_testing ? 'SÍ' : 'NO'}
-                                    </Text>
-                                </View>
-                            ) : (
-                                <Switch
-                                    value={form.is_testing}
-                                    onValueChange={(val) => updateForm('is_testing', val)}
-                                    trackColor={{ false: '#767577', true: '#FF3B30' }}
-                                    thumbColor={form.is_testing ? '#ffcccc' : '#f4f3f4'}
-                                />
-                            )}
-                        </View>
 
-                        {renderInput('Slogan', 'slogan', 'Una frase que te defina')}
-                        {renderInput('Descripción', 'overview', 'Cuenta la historia de tu local...', false, 'default', true)}
+                        {/* Switch de is_testing - SOLO VISIBLE PARA SUPER ADMIN */}
+                        {isSuperAdmin && (
+                            <View className="flex-row items-center justify-between mb-4 bg-surface-deep/50 p-3 rounded-xl border border-surface-active">
+                                <Text className="text-foreground font-body-bold">¿Es Local de Prueba?</Text>
+                                {isViewMode ? (
+                                    <View className={`px-3 py-1 rounded-full ${form.is_testing ? 'bg-red-500' : 'bg-surface-active'}`}>
+                                        <Text className={`text-xs font-bold ${form.is_testing ? 'text-white' : 'text-foreground-muted'}`}>
+                                            {form.is_testing ? 'SÍ' : 'NO'}
+                                        </Text>
+                                    </View>
+                                ) : (
+                                    <Switch
+                                        value={form.is_testing}
+                                        onValueChange={(val) => updateForm('is_testing', val)}
+                                        trackColor={{ false: '#767577', true: '#FF3B30' }}
+                                        thumbColor={form.is_testing ? '#ffcccc' : '#f4f3f4'}
+                                    />
+                                )}
+                            </View>
+                        )}
+
+
+                        {renderInput('Slogan', 'slogan', 'Una frase que te defina', true)}
+                        {renderInput('Descripción', 'overview', 'Cuenta la historia de tu local...', true, 'default', true)}
                         {renderSelector('Categoría', form.category_label, 'Seleccionar Categoría', () => setModalVisible({ type: 'category' }), true, 'category_id')}
 
                     </Card>
@@ -679,10 +737,10 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                     {/* CARD 2: CONTACTO */}
                     <Card title="Contacto" subtitle="Canales de comunicación pública">
                         <View className="flex-row gap-4">
-                            {renderInput('Teléfono', 'contact_phone', '+56 9 ...', false, 'phone-pad')}
+                            {renderInput('Teléfono', 'contact_phone', '+56 9 ...', true, 'phone-pad')}
                         </View>
                         <View className="flex-row gap-4">
-                            {renderInput('Email', 'contact_email', 'contacto@local.cl', false, 'email-address')}
+                            {renderInput('Email', 'contact_email', 'contacto@local.cl', true, 'email-address')}
                         </View>
                         <View className="flex-row gap-4">
                             {renderInput('Sitio Web', 'website', 'https://...')}
@@ -692,7 +750,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                     {/* CARD 3: MULTIMEDIA */}
                     <Card title="Galería & Menú" subtitle="Imágenes que venden la experiencia">
                         <View className="bg-surface-deep rounded-xl p-4 border border-surface-active mb-6">
-                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Logo</Text>
+                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Logo {!isViewMode && <Text className="text-primary">*</Text>}</Text>
                             <TouchableOpacity onPress={() => handlePickImage('logo')} className="items-center justify-center bg-surface border border-dashed border-accent-cyber/30 rounded-full h-32 w-32 self-center overflow-hidden relative">
                                 {form.logo_uri ? (
                                     <Image source={{ uri: form.logo_uri }} className="w-full h-full" resizeMode="cover" />
@@ -732,7 +790,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         </View>
 
                         <View className="bg-surface-deep rounded-xl p-4 border border-surface-active mb-6">
-                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Portada</Text>
+                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Portada {!isViewMode && <Text className="text-primary">*</Text>}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-2">
                                 <TouchableOpacity onPress={() => handlePickImage('cover')} className="mr-3 items-center justify-center bg-surface border border-dashed border-accent-cyber/30 rounded-xl h-32 w-48 shadow-sm hover:shadow-accent-cyber/50">
                                     <View className="bg-primary rounded-full w-10 h-10 items-center justify-center shadow-lg shadow-primary/50">
@@ -773,7 +831,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         </View>
 
                         <View className="bg-surface-deep rounded-xl p-4 border border-surface-active">
-                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Carta / Menú Digital</Text>
+                            <Text className="text-foreground-muted font-body-semibold mb-3 ml-1 text-xs uppercase tracking-wider">Carta / Menú Digital {!isViewMode && <Text className="text-primary">*</Text>}</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <TouchableOpacity onPress={() => handlePickImage('menu')} className="mr-3 items-center justify-center bg-surface border border-dashed border-accent-cyber/30 rounded-xl h-40 w-28">
                                     <Ionicons name="restaurant" size={24} color="#00E0FF" />
@@ -868,7 +926,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                     </Card>
 
                     {/* CARD 5: HORARIOS */}
-                    <Card title="Horarios" subtitle="Cuándo encontrarte">
+                    <Card title="Horarios *" subtitle="Cuándo encontrarte">
                         <OpeningHoursEditor
                             value={form.opening_hours}
                             onChange={(val) => updateForm('opening_hours', val)}
@@ -964,7 +1022,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
 
                     {/* CARD 7: PRECIO Y CAPACIDAD */}
                     <Card title="Precio y Capacidad" subtitle="Detalles operativos">
-                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Nivel de Precio</Text>
+                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Nivel de Precios (Accesibilidad económica)</Text>
                         <View className="flex-row gap-2 mb-4">
                             {[1, 2, 3, 4].map((tier) => (
                                 <TouchableOpacity
@@ -984,15 +1042,15 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                             ))}
                         </View>
 
-                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Rango de Precios (Estimado)</Text>
+                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Gasto Promedio por Persona (CLP)</Text>
                         <View className="flex-row gap-4">
-                            {renderInput('Min ($)', 'avg_price_min', '0', false, 'numeric')}
-                            {renderInput('Max ($)', 'avg_price_max', '0', false, 'numeric')}
+                            {renderInput('Mín ($)', 'avg_price_min', '0', true, 'numeric')}
+                            {renderInput('Máx ($)', 'avg_price_max', '0', true, 'numeric')}
                         </View>
-                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Capacidad:</Text>
+                        <Text className="text-foreground-muted font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Aforo del Local (personas) <Text className="text-primary">*</Text></Text>
                         <View className="flex-row gap-4">
-                            {renderInput('Total', 'capacity_estimate', 'Ej: 100', false, 'numeric')}
-                            {renderInput('Sentados', 'seated_capacity', 'Ej: 50', false, 'numeric')}
+                            {renderInput('Capacidad Total', 'capacity_estimate', 'Ej: 100', true, 'numeric')}
+                            {renderInput('Asientos', 'seated_capacity', 'Ej: 50', true, 'numeric')}
                         </View>
                         <View className="flex-row items-center justify-between py-3 border-b border-surface-active mb-4">
                             <Text className="text-foreground font-body">¿Permite estar de pie?</Text>
@@ -1005,7 +1063,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                             />
                         </View>
 
-                        <Text className="text-foreground font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Métodos de Pago</Text>
+                        <Text className="text-foreground font-body-semibold my-2 ml-1 text-xs uppercase tracking-wider">Métodos de Pago {!isViewMode && <Text className="text-primary">*</Text>}</Text>
                         <View className="flex-row flex-wrap gap-2 mb-4">
                             {['Efectivo', 'Tarjeta', 'Transferencia'].map((method) => {
                                 const key = method === 'Efectivo' ? 'cash' : method === 'Tarjeta' ? 'card' : 'transfer';
@@ -1029,25 +1087,48 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         {/* Admin Notes - Hidden for Owners */}
                         {(!isOwner || isSuperAdmin) && renderInput('Notas Admin', 'admin_notes', 'Notas internas...', false, 'default', true)}
 
-                        {/* Tax ID - Read-only for Owners */}
-                        {isOwner ? (
+                        {/* Tax ID - Read-only for Owners in edit/view mode, editable in create */}
+                        {(isOwner && mode !== 'create') ? (
                             <View className="mb-4 flex-1">
-                                <Text className="text-foreground-muted font-body-semibold mb-2 ml-1 text-xs uppercase tracking-wider">ID Tributario</Text>
+                                <Text className="text-foreground-muted font-body-semibold mb-2 ml-1 text-xs uppercase tracking-wider">ID Tributario / RUT del Local</Text>
                                 <View className="bg-surface-deep/50 border border-surface-deep rounded-xl px-4 py-3 flex-row justify-between items-center">
                                     <Text className="text-foreground font-body">{form.company_tax_id || '-'}</Text>
                                     <Ionicons name="lock-closed" size={16} color="#666" />
                                 </View>
                             </View>
                         ) : (
-                            renderInput('ID Tributario', 'company_tax_id', '76.xxx.xxx-x')
+                            <View className="mb-4 flex-1">
+                                <Text className="text-foreground-muted font-body-semibold mb-2 ml-1 text-xs uppercase tracking-wider">
+                                    ID TRIBUTARIO / RUT DEL LOCAL <Text className="text-primary">*</Text>
+                                </Text>
+                                <TextInput
+                                    className="bg-surface-deep border border-accent-cyber/20 rounded-xl px-4 py-3 text-foreground font-body"
+                                    placeholder="76.123.456-7"
+                                    placeholderTextColor="#989EB3"
+                                    value={form.company_tax_id || ''}
+                                    onChangeText={(v) => updateForm('company_tax_id', v)}
+                                    maxLength={14}
+                                    editable={!isViewMode}
+                                />
+                                <Text className="text-foreground text-xs mt-1 ml-1">
+                                    <Text style={{ color: '#FA4E35', fontWeight: 'bold' }}>IMPORTANTE:   </Text>
+                                    Ingresa el RUT del local con este formato: XX.XXX.XXX-X
+                                    Con puntos y guion (ej: 76.123.456-7)
+                                    No uses espacios ni caracteres especiales y
+                                    comprueba que el RUT sea correcto
+                                </Text>
+                            </View>
                         )}
 
-                        <Text className="text-foreground-muted font-body-semibold mb-2 ml-1 text-xs uppercase tracking-wider">Documento de Propiedad</Text>
+                        <Text className="text-foreground-muted font-body-semibold mb-1 ml-1 text-xs uppercase tracking-wider">Documento de Acreditación del Local</Text>
+                        <Text className="text-foreground-muted text-xs mb-3 ml-1">
+                            Sube un documento oficial que acredite la existencia legal del local (patente comercial, certificado de SII, contrato de arriendo, etc.). El documento debe incluir el ID TRIBUTARIO / RUT indicado arriba.
+                        </Text>
                         <View className="flex-row items-center gap-2 mb-4">
                             <TouchableOpacity
-                                onPress={() => !isOwner && handlePickImage('document')}
-                                disabled={isOwner}
-                                className={`flex-1 flex-row items-center bg-surface-deep border border-accent-cyber/20 rounded-xl px-4 py-3 ${isOwner ? 'opacity-50' : ''}`}
+                                onPress={() => (mode === 'create' || !isOwner) && handlePickImage('document')}
+                                disabled={isOwner && mode !== 'create'}
+                                className={`flex-1 flex-row items-center bg-surface-deep border border-accent-cyber/20 rounded-xl px-4 py-3 ${(isOwner && mode !== 'create') ? 'opacity-50' : ''}`}
                             >
                                 <Ionicons name="document-text" size={24} color="#00E0FF" />
                                 <Text className="text-foreground ml-3 flex-1" numberOfLines={1}>
@@ -1103,19 +1184,26 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                             </View>
                         )}
 
-                        <View className="flex-row items-center justify-between py-3 border-t border-surface-active mt-2">
-                            <Text className="text-foreground font-body">Estado Operacional</Text>
-                            <View className="flex-row items-center gap-2">
-                                <Text className={`text-xs ${form.is_operational ? 'text-success' : 'text-error'}`}>
-                                    {form.is_operational ? 'HABILITADO' : 'DESHABILITADO'}
-                                </Text>
-                                <Switch
-                                    value={form.is_operational}
-                                    onValueChange={(val) => updateForm('is_operational', val)}
-                                    trackColor={{ false: '#252A4A', true: '#06D6A0' }}
-                                    thumbColor={form.is_operational ? '#FFFFFF' : '#989EB3'}
-                                    disabled={isViewMode}
-                                />
+                        <View className="py-3 border-t border-surface-active mt-2">
+                            <View className="flex-row items-center justify-between">
+                                <View className="flex-1 mr-4">
+                                    <Text className="text-foreground font-body">Estado de Funcionamiento</Text>
+                                    <Text className="text-foreground-muted text-xs mt-1">
+                                        Indica si el local está abierto al público o cerrado temporalmente (ej: remodelación, vacaciones)
+                                    </Text>
+                                </View>
+                                <View className="flex-row items-center gap-2">
+                                    <Text className={`text-xs ${form.is_operational ? 'text-success' : 'text-error'}`}>
+                                        {form.is_operational ? 'ABIERTO' : 'CERRADO'}
+                                    </Text>
+                                    <Switch
+                                        value={form.is_operational}
+                                        onValueChange={(val) => updateForm('is_operational', val)}
+                                        trackColor={{ false: '#252A4A', true: '#06D6A0' }}
+                                        thumbColor={form.is_operational ? '#FFFFFF' : '#989EB3'}
+                                        disabled={isViewMode}
+                                    />
+                                </View>
                             </View>
                         </View>
                     </Card>

@@ -60,7 +60,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         <View>
             {/* Country */}
             <View className="mt-4">
-                <Text className={`${labelColor} mb-1 font-brand-bold`}>País {loading && <ActivityIndicator size="small" />}</Text>
+                <Text className={`${labelColor} mb-1 font-brand-bold`}>País <Text style={{ color: '#00E0FF' }}>*</Text> {loading && <ActivityIndicator size="small" />}</Text>
                 <View className={pickerContainerClasses}>
                     <Picker
                         selectedValue={countryCode}
@@ -68,9 +68,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={countries?.length > 0 ? "Selecciona País" : "Cargando..."} value="" color="#666666" />
+                        <Picker.Item label={countries?.length > 0 ? "Selecciona País" : "Cargando..."} value="" />
                         {countries?.map((c) => (
-                            <Picker.Item key={c.code} label={c.name} value={c.code} color="#1F2937" />
+                            <Picker.Item key={c.code} label={c.name} value={c.code} />
                         ))}
                     </Picker>
                 </View>
@@ -78,7 +78,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
             {/* Region */}
             <View className="mt-4">
-                <Text className={`${labelColor} mb-1 font-brand-bold`}>Región</Text>
+                <Text className={`${labelColor} mb-1 font-brand-bold`}>Región <Text style={{ color: '#00E0FF' }}>*</Text></Text>
                 <View className={pickerContainerClasses}>
                     <Picker
                         selectedValue={regionId}
@@ -87,9 +87,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Región..."} value={0} color="#666666" />
+                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Región..."} value={0} />
                         {regions?.map((r) => (
-                            <Picker.Item key={r.id} label={r.name} value={r.id} color="#1F2937" />
+                            <Picker.Item key={r.id} label={r.name} value={r.id} />
                         ))}
                     </Picker>
                 </View>
@@ -97,7 +97,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
             {/* City (Comuna) */}
             <View className="mt-4">
-                <Text className={`${labelColor} mb-1 font-brand-bold`}>Comuna (Ciudad) *Obligatorio</Text>
+                <Text className={`${labelColor} mb-1 font-brand-bold`}>Comuna <Text style={{ color: '#00E0FF' }}>*</Text></Text>
                 <View className={pickerContainerClasses}>
                     <Picker
                         selectedValue={cityId}
@@ -106,9 +106,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                         dropdownIconColor="#989EB3"
                         style={{ color: '#F2F1F0', backgroundColor: 'transparent' }}
                     >
-                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Comuna..."} value={0} color="#666666" />
+                        <Picker.Item label={loading ? "Cargando..." : "Selecciona Comuna..."} value={0} />
                         {cities?.map((c) => (
-                            <Picker.Item key={c.id} label={c.name} value={c.id} color="#1F2937" />
+                            <Picker.Item key={c.id} label={c.name} value={c.id} />
                         ))}
                     </Picker>
                 </View>

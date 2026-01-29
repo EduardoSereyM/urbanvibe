@@ -1,7 +1,8 @@
-from typing import Annotated, List
+from typing import Annotated, List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -35,6 +36,29 @@ router = APIRouter(
 )
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+
+
+# --- Endpoint para verificar unicidad del ID Tributario / RUT ---
+@router.get("/check-tax-id/{tax_id}")
+async def check_tax_id_unique(
+    tax_id: str,
+    db: Annotated[AsyncSession, Depends(deps.get_db)],
+    current_venue_id: Optional[UUID] = Query(None, description="Excluir este venue de la búsqueda (para edición)"),
+):
+    """
+    Verifica si un ID Tributario ya está registrado.
+    Retorna { "is_unique": bool, "message": str }
+    """
+    query = select(Venue).where(Venue.company_tax_id == tax_id)
+    if current_venue_id:
+        query = query.where(Venue.id != current_venue_id)
+    
+    result = await db.execute(query)
+    existing = result.scalars().first()
+    
+    if existing:
+        return {"is_unique": False, "message": "Este ID Tributario ya está registrado en otro local"}
+    return {"is_unique": True, "message": "Disponible"}
 
 
 def get_is_super_admin(
@@ -103,11 +127,17 @@ async def create_venue(
     """
     Crea una casa matriz (local fundador) para el usuario actual.
     """
-    result = await create_founder_venue(
-        db=db,
-        venue_data=venue_data,
-        owner_user_id=current_user.id
-    )
+    try:
+        result = await create_founder_venue(
+            db=db,
+            venue_data=venue_data,
+            owner_user_id=current_user.id
+        )
+    except IntegrityError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Ya existe un local con este ID Tributario o nombre."
+        )
     
     # Notificar creación de venue
     # Obtenemos email del user
