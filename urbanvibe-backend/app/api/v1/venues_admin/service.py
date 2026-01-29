@@ -170,7 +170,11 @@ async def create_founder_venue(
         opening_hours_json = venue_data.opening_hours.model_dump()
     
     # Preparar features_config
-    features_config_json = {"chat": False}
+    first_phone = venue_data.contact_phone
+    features_config_json = {
+        "chat": False,
+        "contact_phone": first_phone 
+    }
     
     from app.services.referral_service import referral_service
     # Crear el venue
@@ -199,6 +203,9 @@ async def create_founder_venue(
         directions_tip=venue_data.directions_tip,
         seo_title=venue_data.seo_title,
         seo_description=venue_data.seo_description,
+        
+        contact_email=venue_data.contact_email,
+        website=venue_data.website,
         
         company_tax_id=venue_data.company_tax_id,
         ownership_proof_url=venue_data.ownership_proof_url,

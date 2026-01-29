@@ -60,6 +60,11 @@ class VenueCreate(BaseModel):
     currency_code: Optional[str] = "CLP"
     payment_methods: Optional[Dict[str, bool]] = None
     
+    # Contact (Flat)
+    contact_email: Optional[str] = None
+    website: Optional[str] = None
+    contact_phone: Optional[str] = None
+    
     # Location Extras
     google_place_id: Optional[str] = None
     directions_tip: Optional[str] = None

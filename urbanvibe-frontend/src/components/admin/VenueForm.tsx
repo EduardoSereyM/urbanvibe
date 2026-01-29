@@ -541,12 +541,10 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                 // Better to return the processed form data and let the parent decide?
                 // No, the goal is to unify.
 
-                // Let's construct the standard payload here
-                contact: {
-                    phone: form.contact_phone,
-                    email: form.contact_email,
-                    website: form.website,
-                },
+                contact_email: form.contact_email,
+                website: form.website,
+                contact_phone: form.contact_phone,
+
                 company_tax_id: form.company_tax_id,
                 category_id: form.category_id,
                 // ... other mappings
