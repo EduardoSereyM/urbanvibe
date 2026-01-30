@@ -97,7 +97,7 @@ export default function WelcomeScreen() {
                 <View className="items-center pb-4">
                     {/* Versión App */}
                     <View className="mb-6 px-3 py-1 rounded-md mt-2 border border-warning">
-                        <Text className="text-foreground text-xs font-bold tracking-widest uppercase">Version Beta v1.17.0</Text>
+                        <Text className="text-foreground text-xs font-bold tracking-widest uppercase">Version Beta v1.18.0</Text>
                     </View>
                     <Text className="text-foreground-muted text-xs font-body">
                         urban

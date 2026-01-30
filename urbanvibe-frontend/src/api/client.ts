@@ -192,6 +192,16 @@ export async function markReviewsAsRead(venueId: string): Promise<void> {
   await client.post(`/venues-admin/venues/${venueId}/reviews/mark-read`);
 }
 
+export async function checkTaxIdAvailable(taxId: string): Promise<{ is_unique: boolean; message: string }> {
+  const { data } = await client.get<{ is_unique: boolean; message: string }>(`/venues-admin/check-tax-id/${encodeURIComponent(taxId)}`);
+  return data;
+}
+
+export async function checkNameAvailable(name: string): Promise<{ is_unique: boolean; message: string }> {
+  const { data } = await client.get<{ is_unique: boolean; message: string }>(`/venues-admin/check-name-availability/${encodeURIComponent(name)}`);
+  return data;
+}
+
 // ============================================================================
 // User Promotions API
 // ============================================================================

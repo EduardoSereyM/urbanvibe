@@ -28,6 +28,7 @@ import {
     LIVE_MUSIC_FREQUENCY, AGE_FOCUS, CROWD_STYLES, PRICING_USE_CASES, SPEND_BUCKETS
 } from '../../constants/venueAttributes';
 import { OpeningHoursConfig } from '../../api/types';
+import { checkTaxIdAvailable, checkNameAvailable } from '../../api/client';
 import { SelectionModal } from '../ui/SelectionModal';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -235,6 +236,33 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
     const [form, setForm] = useState<any>(INITIAL_STATE);
     const [loading, setLoading] = useState(false);
     const [geocodingLoading, setGeocodingLoading] = useState(false);
+
+    // Validation States
+    const [taxIdError, setTaxIdError] = useState<string | null>(null);
+    const [nameError, setNameError] = useState<string | null>(null);
+    const [isValidatingUnique, setIsValidatingUnique] = useState(false);
+
+    const handleCheckName = async () => {
+        if (!form.name || mode !== 'create') return;
+        setIsValidatingUnique(true);
+        try {
+            const res = await checkNameAvailable(form.name);
+            if (!res.is_unique) setNameError(res.message);
+            else setNameError(null);
+        } catch (e) { console.error('Error checking name', e); }
+        finally { setIsValidatingUnique(false); }
+    };
+
+    const handleCheckTaxId = async () => {
+        if (!form.company_tax_id || mode !== 'create') return;
+        setIsValidatingUnique(true);
+        try {
+            const res = await checkTaxIdAvailable(form.company_tax_id);
+            if (!res.is_unique) setTaxIdError(res.message);
+            else setTaxIdError(null);
+        } catch (e) { console.error('Error checking tax id', e); }
+        finally { setIsValidatingUnique(false); }
+    };
     const [categories, setCategories] = useState<Option[]>([]);
 
     // Removed internal region/city fetching states as LocationSelector handles it
@@ -574,7 +602,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
 
     const isReadOnly = isViewMode;
 
-    const renderInput = (label: string, key: string, placeholder: string, required = false, keyboardType: any = 'default', multiline = false) => {
+    const renderInput = (label: string, key: string, placeholder: string, required = false, keyboardType: any = 'default', multiline = false, extraProps?: { onBlur?: () => void, error?: string | null }) => {
         // Check visibility
         const configKey = key as keyof typeof FIELD_CONFIG;
         if (!shouldShow(configKey) && !shouldShow(key as any)) return null;
@@ -599,7 +627,11 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                         multiline={multiline}
                         textAlignVertical={multiline ? 'top' : 'center'}
                         editable={!isViewMode}
+                        onBlur={extraProps?.onBlur}
                     />
+                )}
+                {extraProps?.error && (
+                    <Text className="text-red-500 text-xs mt-1 ml-1">{extraProps.error}</Text>
                 )}
             </View>
         );
@@ -689,7 +721,7 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
 
                     {/* CARD 1: IDENTIDAD */}
                     <Card title="Identidad del Local" subtitle="Información esencial de tu marca">
-                        {renderInput('Nombre del Local', 'name', 'Ej: Bar La Playa', true)}
+                        {renderInput('Nombre del Local', 'name', 'Ej: Bar La Playa', true, 'default', false, { onBlur: handleCheckName, error: nameError })}
                         {/* Legal Name - Locked for Owners ONLY on Edit */}
                         {isOwner && mode !== 'create' ? (
                             <View className="mb-4 flex-1">
@@ -1107,7 +1139,9 @@ export function VenueForm({ mode, initialData, onSubmit, onCancel, onEdit, loadi
                                     onChangeText={(v) => updateForm('company_tax_id', v)}
                                     maxLength={14}
                                     editable={!isViewMode}
+                                    onBlur={handleCheckTaxId}
                                 />
+                                {taxIdError && <Text className="text-red-500 text-xs mt-1 ml-1 font-bold">{taxIdError}</Text>}
                                 <Text className="text-foreground text-xs mt-1 ml-1">
                                     <Text style={{ color: '#FA4E35', fontWeight: 'bold' }}>IMPORTANTE:   </Text>
                                     Ingresa el RUT del local con este formato: XX.XXX.XXX-X
